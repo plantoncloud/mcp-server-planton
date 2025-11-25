@@ -1,0 +1,78 @@
+# GoReleaser configuration for mcp-server-planton
+# Follows GitHub's MCP server distribution approach
+
+version: 2
+
+before:
+  hooks:
+    # Run go mod tidy to ensure dependencies are correct
+    - go mod tidy
+
+builds:
+  - id: mcp-server-planton
+    main: ./cmd/mcp-server-planton
+    binary: mcp-server-planton
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.Date}}
+
+archives:
+  - id: default
+    format: tar.gz
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- .Version }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - README.md
+      - LICENSE
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - 'README'
+  groups:
+    - title: Features
+      regexp: '^feat:'
+      order: 0
+    - title: Bug Fixes
+      regexp: '^fix:'
+      order: 1
+    - title: Others
+      order: 999
+
+release:
+  github:
+    owner: plantoncloud-inc
+    name: mcp-server-planton
+  draft: false
+  prerelease: auto
+  name_template: "{{.Tag}}"
+
+sboms:
+  - artifacts: archive
+

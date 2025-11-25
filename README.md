@@ -12,21 +12,53 @@ The Planton Cloud MCP Server provides tools for LangGraph agents, Claude Desktop
 - **Environment queries** - List and filter environments by organization
 - **Extensible** - More resource types coming soon (organizations, projects, cloud resources)
 - **MCP standard** - Works with any MCP client (LangGraph, Claude Desktop, Cursor, etc.)
+- **Go implementation** - Fast, lightweight, and easy to distribute
 
 ## Installation
 
-### From PyPI (recommended)
+### Option 1: Docker (Recommended)
+
+Pull and run from GitHub Container Registry:
 
 ```bash
-pip install mcp-server-planton
+docker run -i --rm \
+  -e USER_JWT_TOKEN="your-jwt-token" \
+  -e PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443" \
+  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
 ```
 
-### From Source
+### Option 2: Pre-built Binaries
+
+Download the latest release for your platform from [GitHub Releases](https://github.com/plantoncloud-inc/mcp-server-planton/releases):
+
+```bash
+# macOS (ARM64)
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_arm64.tar.gz | tar xz
+
+# macOS (Intel)
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_x86_64.tar.gz | tar xz
+
+# Linux (AMD64)
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Linux_x86_64.tar.gz | tar xz
+
+# Move to PATH
+sudo mv mcp-server-planton /usr/local/bin/
+```
+
+### Option 3: From Source
+
+Requires Go 1.22+:
+
+```bash
+go install github.com/plantoncloud-inc/mcp-server-planton/cmd/mcp-server-planton@latest
+```
+
+Or clone and build:
 
 ```bash
 git clone https://github.com/plantoncloud-inc/mcp-server-planton.git
 cd mcp-server-planton
-poetry install
+make build
 ```
 
 ## Quick Start
@@ -44,12 +76,6 @@ Run the server:
 
 ```bash
 mcp-server-planton
-```
-
-Or with Python module:
-
-```bash
-python -m mcp_server_planton.server
 ```
 
 ### Integration with LangGraph
@@ -70,6 +96,24 @@ Add to your `langgraph.json`:
 }
 ```
 
+Or using Docker:
+
+```json
+{
+  "mcp_servers": {
+    "planton-cloud": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "USER_JWT_TOKEN=${USER_JWT_TOKEN}",
+        "-e", "PLANTON_APIS_GRPC_ENDPOINT=${PLANTON_APIS_GRPC_ENDPOINT}",
+        "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
+      ]
+    }
+  }
+}
+```
+
 ### Integration with Claude Desktop
 
 Add to your Claude Desktop MCP settings:
@@ -83,6 +127,24 @@ Add to your Claude Desktop MCP settings:
         "USER_JWT_TOKEN": "your-jwt-token",
         "PLANTON_APIS_GRPC_ENDPOINT": "apis.planton.cloud:443"
       }
+    }
+  }
+}
+```
+
+Or using Docker:
+
+```json
+{
+  "mcpServers": {
+    "planton-cloud": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "USER_JWT_TOKEN=your-jwt-token",
+        "-e", "PLANTON_APIS_GRPC_ENDPOINT=apis.planton.cloud:443",
+        "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
+      ]
     }
   }
 }
@@ -177,8 +239,7 @@ This is different from machine account patterns where a service account has broa
 
 ### Prerequisites
 
-- Python 3.11+
-- Poetry
+- Go 1.22+
 - Access to Planton Cloud APIs (local or remote)
 
 ### Setup
@@ -189,10 +250,10 @@ git clone https://github.com/plantoncloud-inc/mcp-server-planton.git
 cd mcp-server-planton
 
 # Install dependencies
-poetry install
+go mod download
 
-# Activate virtual environment
-poetry shell
+# Build
+make build
 ```
 
 ### Running Locally
@@ -200,44 +261,76 @@ poetry shell
 ```bash
 export USER_JWT_TOKEN="your-jwt-token"
 export PLANTON_APIS_GRPC_ENDPOINT="localhost:8080"
-python src/mcp_server_planton/server.py
+./bin/mcp-server-planton
 ```
 
-### Code Quality
+### Make Targets
 
 ```bash
-# Run linter
-poetry run ruff check src/
-
-# Run type checker
-poetry run mypy src/
-
-# Auto-fix linting issues
-poetry run ruff check --fix src/
+make build          # Build binary
+make install        # Install to GOPATH/bin
+make test           # Run tests
+make lint           # Run linter
+make docker-build   # Build Docker image
+make docker-run     # Run Docker container
+make clean          # Remove build artifacts
 ```
 
 ### Project Structure
 
 ```
 mcp-server-planton/
-├── src/
-│   └── mcp_server_planton/
-│       ├── server.py              # MCP server entry point
-│       ├── config.py              # Configuration management
-│       ├── auth/
-│       │   └── user_token_interceptor.py  # gRPC auth interceptor
-│       ├── grpc_clients/
-│       │   └── environment_client.py      # Environment API client
+├── cmd/
+│   └── mcp-server-planton/
+│       └── main.go              # Entry point
+├── internal/
+│   ├── config/
+│   │   └── config.go            # Configuration management
+│   ├── grpc/
+│   │   ├── interceptor.go       # Auth interceptor
+│   │   └── client.go            # Environment gRPC client
+│   └── mcp/
+│       ├── server.go            # MCP server setup
 │       └── tools/
-│           └── environment_tools.py       # Environment query tools
-├── docs/                          # Documentation
-├── pyproject.toml                 # Poetry dependencies
-└── README.md                      # This file
+│           └── environment.go   # Environment query tools
+├── .github/
+│   └── workflows/
+│       └── release.yml          # Release automation
+├── .goreleaser.yaml             # GoReleaser config
+├── Dockerfile                   # Multi-stage Docker build
+├── Makefile                     # Build commands
+└── README.md                    # This file
 ```
+
+## Distribution
+
+### GitHub Releases
+
+Pre-built binaries for multiple platforms are available on [GitHub Releases](https://github.com/plantoncloud-inc/mcp-server-planton/releases):
+
+- macOS (Intel and ARM64)
+- Linux (AMD64 and ARM64)
+- Windows (AMD64)
+
+### Docker Images
+
+Docker images are published to GitHub Container Registry:
+
+```bash
+docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:v0.1.0
+```
+
+Images are available for:
+- `linux/amd64`
+- `linux/arm64`
 
 ## Roadmap
 
 - [x] Environment query tools
+- [x] Go implementation
+- [x] Docker distribution
+- [x] GitHub Releases
 - [ ] Organization query tools
 - [ ] Project query tools
 - [ ] Cloud resource query tools
@@ -254,7 +347,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes
-4. Run tests and linting
+4. Run tests and linting (`make test lint`)
 5. Commit your changes (`git commit -m 'feat: add amazing feature'`)
 6. Push to your fork (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
@@ -279,4 +372,3 @@ Apache-2.0 - see [LICENSE](LICENSE) for details.
 ---
 
 Built with ❤️ by [Planton Cloud](https://planton.cloud)
-
