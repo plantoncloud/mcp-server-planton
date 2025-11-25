@@ -1,4 +1,4 @@
-package tools
+package errors
 
 import (
 	"encoding/json"
@@ -18,7 +18,7 @@ type ErrorResponse struct {
 }
 
 // HandleGRPCError converts gRPC errors to user-friendly error responses.
-// This is exported so it can be reused by other packages.
+// This is exported so it can be reused by all domains.
 func HandleGRPCError(err error, orgID string) *mcp.CallToolResult {
 	st, ok := status.FromError(err)
 	if !ok {
@@ -71,3 +71,4 @@ func HandleGRPCError(err error, orgID string) *mcp.CallToolResult {
 	errJSON, _ := json.MarshalIndent(errResp, "", "  ")
 	return mcp.NewToolResultText(string(errJSON))
 }
+

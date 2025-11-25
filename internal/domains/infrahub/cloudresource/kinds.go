@@ -1,4 +1,4 @@
-package tools
+package cloudresource
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
 	cloudresourcekind "github.com/project-planton/project-planton/apis/org/project_planton/shared/cloudresourcekind"
 )
@@ -75,7 +76,7 @@ func HandleListCloudResourceKinds(
 	// Return formatted JSON response
 	resultJSON, err := json.MarshalIndent(kinds, "", "  ")
 	if err != nil {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INTERNAL_ERROR",
 			Message: "Failed to marshal cloud resource kinds",
 		}

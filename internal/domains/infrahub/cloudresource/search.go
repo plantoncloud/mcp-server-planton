@@ -1,4 +1,4 @@
-package tools
+package cloudresource
 
 import (
 	"context"
@@ -10,8 +10,9 @@ import (
 	cloudresourcesearch "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/search/v1/infrahub/cloudresource"
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/clients"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -85,7 +86,7 @@ func HandleSearchCloudResources(
 	// Extract org_id from arguments
 	orgID, ok := arguments["org_id"].(string)
 	if !ok || orgID == "" {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
 			Message: "org_id is required",
 		}
@@ -125,12 +126,12 @@ func HandleSearchCloudResources(
 		orgID, envNames, kinds, searchText)
 
 	// Create gRPC client with user's API key
-	client, err := infrahub.NewCloudResourceSearchClient(
+	client, err := clients.NewCloudResourceSearchClient(
 		cfg.PlantonAPIsGRPCEndpoint,
 		cfg.PlantonAPIKey,
 	)
 	if err != nil {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "CLIENT_ERROR",
 			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
 			OrgID:   orgID,
@@ -143,7 +144,7 @@ func HandleSearchCloudResources(
 	// Query cloud resources
 	resp, err := client.GetCloudResourcesCanvasView(ctx, orgID, envNames, kinds, searchText)
 	if err != nil {
-		return HandleGRPCError(err, orgID), nil
+		return errors.HandleGRPCError(err, orgID), nil
 	}
 
 	// Flatten the nested response structure
@@ -154,7 +155,7 @@ func HandleSearchCloudResources(
 	// Return formatted JSON response
 	resultJSON, err := json.MarshalIndent(resources, "", "  ")
 	if err != nil {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INTERNAL_ERROR",
 			Message: fmt.Sprintf("Failed to marshal response: %v", err),
 			OrgID:   orgID,
@@ -221,3 +222,4 @@ func getKindName(kind int32) string {
 	}
 	return fmt.Sprintf("Unknown(%d)", kind)
 }
+

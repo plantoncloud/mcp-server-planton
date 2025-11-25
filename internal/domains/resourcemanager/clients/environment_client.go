@@ -1,4 +1,4 @@
-package resourcemanager
+package clients
 
 import (
 	"context"
@@ -97,3 +97,4 @@ func (c *EnvironmentClient) Close() error {
 	}
 	return nil
 }
+

@@ -1,4 +1,4 @@
-package tools
+package environment
 
 import (
 	"context"
@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub/tools"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/resourcemanager"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/resourcemanager/clients"
 )
 
 // EnvironmentSimple is a simplified representation of an Environment for JSON serialization.
@@ -20,8 +20,8 @@ type EnvironmentSimple struct {
 	Description string `json:"description"`
 }
 
-// CreateEnvironmentTool creates the MCP tool definition for listing environments.
-func CreateEnvironmentTool() mcp.Tool {
+// CreateListEnvironmentsTool creates the MCP tool definition for listing environments.
+func CreateListEnvironmentsTool() mcp.Tool {
 	return mcp.Tool{
 		Name: "list_environments_for_org",
 		Description: "List all environments available in an organization. " +
@@ -56,7 +56,7 @@ func HandleListEnvironmentsForOrg(
 	// Extract org_id from arguments
 	orgID, ok := arguments["org_id"].(string)
 	if !ok || orgID == "" {
-		errResp := tools.ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
 			Message: "org_id is required",
 		}
@@ -67,12 +67,12 @@ func HandleListEnvironmentsForOrg(
 	log.Printf("Tool invoked: list_environments_for_org, org_id=%s", orgID)
 
 	// Create gRPC client with user's API key
-	client, err := resourcemanager.NewEnvironmentClient(
+	client, err := clients.NewEnvironmentClient(
 		cfg.PlantonAPIsGRPCEndpoint,
 		cfg.PlantonAPIKey,
 	)
 	if err != nil {
-		errResp := tools.ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "CLIENT_ERROR",
 			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
 			OrgID:   orgID,
@@ -85,8 +85,7 @@ func HandleListEnvironmentsForOrg(
 	// Query environments
 	environments, err := client.FindByOrg(ctx, orgID)
 	if err != nil {
-		// Use shared error handling from infrahub/tools
-		return tools.HandleGRPCError(err, orgID), nil
+		return errors.HandleGRPCError(err, orgID), nil
 	}
 
 	// Convert protobuf objects to JSON-serializable structs
@@ -109,7 +108,7 @@ func HandleListEnvironmentsForOrg(
 	// Return formatted JSON response
 	resultJSON, err := json.MarshalIndent(envList, "", "  ")
 	if err != nil {
-		errResp := tools.ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INTERNAL_ERROR",
 			Message: fmt.Sprintf("Failed to marshal response: %v", err),
 			OrgID:   orgID,
@@ -120,3 +119,4 @@ func HandleListEnvironmentsForOrg(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
+
