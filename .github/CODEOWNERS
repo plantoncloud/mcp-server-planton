@@ -1,0 +1,7 @@
+# Global owners - review all changes
+* @sureshattaluri @swarupdonepudi
+
+# Specific ownership
+/internal/grpc/ @sureshattaluri @swarupdonepudi
+/internal/mcp/ @sureshattaluri @swarupdonepudi
+/.github/ @sureshattaluri
