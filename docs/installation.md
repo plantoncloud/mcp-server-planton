@@ -107,7 +107,7 @@ sudo cp bin/mcp-server-planton /usr/local/bin/
 
 Get your Planton Cloud API key:
 
-**Option A: From Web Console (Recommended)**
+**From Web Console:**
 1. Log in to Planton Cloud web console
 2. Click on your profile icon in the top-right corner
 3. Select **API Keys** from the menu
@@ -115,12 +115,6 @@ Get your Planton Cloud API key:
 5. Copy the generated key
 
 **Note:** Existing API keys may not be visible in the console for security reasons, so it's recommended to create a new key.
-
-**Option B: From CLI**
-```bash
-planton auth login
-planton auth token
-```
 
 ### 2. Set Environment Variables
 

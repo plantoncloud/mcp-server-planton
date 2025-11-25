@@ -161,7 +161,7 @@ Or using Docker:
 
 ### Getting an API Key
 
-**Option A: From Web Console (Recommended)**
+**From Web Console:**
 
 1. Log in to Planton Cloud web console
 2. Click on your profile icon in the top-right corner
@@ -170,15 +170,6 @@ Or using Docker:
 5. Copy the generated key
 
 **Note:** Existing API keys may not be visible in the console for security reasons, so it's recommended to create a new key.
-
-**Option B: From CLI**
-
-For programmatic access, use the Planton Cloud CLI:
-
-```bash
-planton auth login
-planton auth token
-```
 
 ## Available Tools
 
