@@ -29,7 +29,7 @@ Pull and run from GitHub Container Registry:
 ```bash
 docker run -i --rm \
   -e PLANTON_API_KEY="your-api-key" \
-  -e PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443" \
+  -e PLANTON_CLOUD_ENVIRONMENT="live" \
   ghcr.io/plantoncloud-inc/mcp-server-planton:latest
 ```
 
@@ -74,8 +74,14 @@ make build
 Set required environment variables:
 
 ```bash
+# Required: Your API key
 export PLANTON_API_KEY="your-api-key"
-export PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443"
+
+# Optional: Target environment (defaults to 'live')
+export PLANTON_CLOUD_ENVIRONMENT="live"  # or 'test', 'local'
+
+# Optional: Override endpoint (not needed if using standard environments)
+# export PLANTON_APIS_GRPC_ENDPOINT="custom-endpoint:443"
 ```
 
 Run the server:
@@ -83,6 +89,8 @@ Run the server:
 ```bash
 mcp-server-planton
 ```
+
+**Note:** By default, the server connects to `api.live.planton.cloud:443`. For local development, set `PLANTON_CLOUD_ENVIRONMENT=local`.
 
 ### Integration with LangGraph
 
@@ -95,7 +103,7 @@ Add to your `langgraph.json`:
       "command": "mcp-server-planton",
       "env": {
         "PLANTON_API_KEY": "${PLANTON_API_KEY}",
-        "PLANTON_APIS_GRPC_ENDPOINT": "${PLANTON_APIS_GRPC_ENDPOINT}"
+        "PLANTON_CLOUD_ENVIRONMENT": "live"
       }
     }
   }
@@ -112,7 +120,7 @@ Or using Docker:
       "args": [
         "run", "-i", "--rm",
         "-e", "PLANTON_API_KEY=${PLANTON_API_KEY}",
-        "-e", "PLANTON_APIS_GRPC_ENDPOINT=${PLANTON_APIS_GRPC_ENDPOINT}",
+        "-e", "PLANTON_CLOUD_ENVIRONMENT=live",
         "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
       ]
     }
@@ -131,7 +139,7 @@ Add to your Claude Desktop MCP settings:
       "command": "mcp-server-planton",
       "env": {
         "PLANTON_API_KEY": "your-api-key",
-        "PLANTON_APIS_GRPC_ENDPOINT": "apis.planton.cloud:443"
+        "PLANTON_CLOUD_ENVIRONMENT": "live"
       }
     }
   }
@@ -148,7 +156,7 @@ Or using Docker:
       "args": [
         "run", "-i", "--rm",
         "-e", "PLANTON_API_KEY=your-api-key",
-        "-e", "PLANTON_APIS_GRPC_ENDPOINT=apis.planton.cloud:443",
+        "-e", "PLANTON_CLOUD_ENVIRONMENT=live",
         "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
       ]
     }
@@ -163,7 +171,13 @@ Or using Docker:
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `PLANTON_API_KEY` | Yes | - | User's API key for authentication (can be JWT token or API key) |
-| `PLANTON_APIS_GRPC_ENDPOINT` | No | `localhost:8080` | Planton Cloud APIs gRPC endpoint |
+| `PLANTON_CLOUD_ENVIRONMENT` | No | `live` | Target environment: `live`, `test`, or `local` |
+| `PLANTON_APIS_GRPC_ENDPOINT` | No | (based on env) | Override gRPC endpoint (takes precedence over environment) |
+
+**Environment-based Endpoints:**
+- `live` (default): `api.live.planton.cloud:443`
+- `test`: `api.test.planton.cloud:443`
+- `local`: `localhost:8080`
 
 ### Getting an API Key
 

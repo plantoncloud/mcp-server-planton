@@ -29,20 +29,35 @@ export PLANTON_API_KEY="your-api-key-or-jwt-token"
 
 ### Optional Variables
 
-#### PLANTON_APIS_GRPC_ENDPOINT
+#### PLANTON_CLOUD_ENVIRONMENT
 
-gRPC endpoint for Planton Cloud APIs.
+Target environment for Planton Cloud APIs.
 
 ```bash
-export PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443"
+export PLANTON_CLOUD_ENVIRONMENT="live"
 ```
 
-**Default:** `localhost:8080`
+**Default:** `live`
 
-**Common values:**
-- Production: `apis.planton.cloud:443`
-- Staging: `staging.apis.planton.cloud:443`
-- Local development: `localhost:8080`
+**Valid values:**
+- `live`: Production environment (`api.live.planton.cloud:443`)
+- `test`: Test environment (`api.test.planton.cloud:443`)
+- `local`: Local development (`localhost:8080`)
+
+#### PLANTON_APIS_GRPC_ENDPOINT
+
+Override gRPC endpoint for Planton Cloud APIs. This takes precedence over `PLANTON_CLOUD_ENVIRONMENT`.
+
+```bash
+export PLANTON_APIS_GRPC_ENDPOINT="custom-endpoint:443"
+```
+
+**Default:** Based on `PLANTON_CLOUD_ENVIRONMENT` setting
+
+**When to use:**
+- Custom or private Planton Cloud installations
+- Non-standard endpoints
+- Testing with specific backend instances
 
 ## Configuration Loading
 
@@ -69,10 +84,11 @@ func LoadFromEnv() (*Config, error) {
         )
     }
     
-    endpoint := os.Getenv("PLANTON_APIS_GRPC_ENDPOINT")
-    if endpoint == "" {
-        endpoint = "localhost:8080"
-    }
+    // Endpoint selection with priority:
+    // 1. PLANTON_APIS_GRPC_ENDPOINT (explicit override)
+    // 2. Based on PLANTON_CLOUD_ENVIRONMENT
+    // 3. Default to "live" (api.live.planton.cloud:443)
+    endpoint := getEndpoint()
     
     return &Config{
         PlantonAPIKey:           apiKey,
@@ -91,8 +107,11 @@ Create a `.env` file in your project root for local development:
 # Required
 PLANTON_API_KEY=your-api-key-or-jwt-token
 
-# Optional (defaults to localhost:8080)
-PLANTON_APIS_GRPC_ENDPOINT=apis.planton.cloud:443
+# Optional: Target environment (defaults to 'live')
+PLANTON_CLOUD_ENVIRONMENT=live  # or 'test', 'local'
+
+# Optional: Override endpoint (not needed for standard environments)
+# PLANTON_APIS_GRPC_ENDPOINT=custom-endpoint:443
 ```
 
 **Note:** The Go server doesn't automatically load `.env` files. You'll need to source them manually or use a tool like `direnv`:
@@ -127,7 +146,7 @@ In `langgraph.json`:
       "command": "mcp-server-planton",
       "env": {
         "PLANTON_API_KEY": "${PLANTON_API_KEY}",
-        "PLANTON_APIS_GRPC_ENDPOINT": "${PLANTON_APIS_GRPC_ENDPOINT}"
+        "PLANTON_CLOUD_ENVIRONMENT": "live"
       }
     }
   }
@@ -135,6 +154,22 @@ In `langgraph.json`:
 ```
 
 **Note:** LangGraph supports environment variable expansion with `${VAR}` syntax.
+
+For local development:
+
+```json
+{
+  "mcp_servers": {
+    "planton-cloud": {
+      "command": "mcp-server-planton",
+      "env": {
+        "PLANTON_API_KEY": "${PLANTON_API_KEY}",
+        "PLANTON_CLOUD_ENVIRONMENT": "local"
+      }
+    }
+  }
+}
+```
 
 ### Claude Desktop Configuration
 
@@ -147,7 +182,7 @@ In `claude_desktop_config.json`:
       "command": "mcp-server-planton",
       "env": {
         "PLANTON_API_KEY": "your-api-key",
-        "PLANTON_APIS_GRPC_ENDPOINT": "apis.planton.cloud:443"
+        "PLANTON_CLOUD_ENVIRONMENT": "live"
       }
     }
   }
@@ -155,6 +190,22 @@ In `claude_desktop_config.json`:
 ```
 
 **Note:** Claude Desktop requires actual values, not environment variable references.
+
+For local development:
+
+```json
+{
+  "mcpServers": {
+    "planton-cloud": {
+      "command": "mcp-server-planton",
+      "env": {
+        "PLANTON_API_KEY": "your-api-key",
+        "PLANTON_CLOUD_ENVIRONMENT": "local"
+      }
+    }
+  }
+}
+```
 
 ## Advanced Configuration
 
@@ -410,7 +461,7 @@ rpc error: code = DeadlineExceeded desc = context deadline exceeded
 
 ```bash
 export PLANTON_API_KEY="dev-key-from-local-planton"
-export PLANTON_APIS_GRPC_ENDPOINT="localhost:8080"
+export PLANTON_CLOUD_ENVIRONMENT="local"
 mcp-server-planton
 ```
 
@@ -418,7 +469,15 @@ mcp-server-planton
 
 ```bash
 export PLANTON_API_KEY="$(vault kv get -field=key secret/planton/api)"
-export PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443"
+export PLANTON_CLOUD_ENVIRONMENT="live"
+mcp-server-planton
+```
+
+### Test Environment
+
+```bash
+export PLANTON_API_KEY="test-api-key"
+export PLANTON_CLOUD_ENVIRONMENT="test"
 mcp-server-planton
 ```
 
@@ -431,7 +490,7 @@ services:
     image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
     environment:
       PLANTON_API_KEY: ${PLANTON_API_KEY}
-      PLANTON_APIS_GRPC_ENDPOINT: apis.planton.cloud:443
+      PLANTON_CLOUD_ENVIRONMENT: live
     stdin_open: true
     tty: true
 ```

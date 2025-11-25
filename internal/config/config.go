@@ -5,6 +5,30 @@ import (
 	"os"
 )
 
+// Environment represents the Planton Cloud environment
+type Environment string
+
+const (
+	// EnvironmentEnvVar is the environment variable to set the target environment
+	EnvironmentEnvVar = "PLANTON_CLOUD_ENVIRONMENT"
+
+	// EndpointOverrideEnvVar allows overriding the endpoint regardless of environment
+	EndpointOverrideEnvVar = "PLANTON_APIS_GRPC_ENDPOINT"
+
+	// APIKeyEnvVar is the environment variable for the API key
+	APIKeyEnvVar = "PLANTON_API_KEY"
+
+	// Environment values
+	EnvironmentLive  Environment = "live"
+	EnvironmentTest  Environment = "test"
+	EnvironmentLocal Environment = "local"
+
+	// Endpoints for each environment
+	LocalEndpoint = "localhost:8080"
+	TestEndpoint  = "api.test.planton.cloud:443"
+	LiveEndpoint  = "api.live.planton.cloud:443"
+)
+
 // Config holds the MCP server configuration loaded from environment variables.
 //
 // Unlike agent-fleet-worker (which uses machine account), this server
@@ -16,7 +40,7 @@ type Config struct {
 	PlantonAPIKey string
 
 	// PlantonAPIsGRPCEndpoint is the gRPC endpoint for Planton Cloud APIs.
-	// Defaults to "localhost:8080" if not set.
+	// Defaults based on environment or can be overridden.
 	PlantonAPIsGRPCEndpoint string
 }
 
@@ -26,25 +50,66 @@ type Config struct {
 //   - PLANTON_API_KEY: User's API key for authentication (can be JWT token or API key)
 //
 // Optional environment variables:
-//   - PLANTON_APIS_GRPC_ENDPOINT: Planton Cloud APIs gRPC endpoint (default: localhost:8080)
+//   - PLANTON_APIS_GRPC_ENDPOINT: Override endpoint (takes precedence)
+//   - PLANTON_CLOUD_ENVIRONMENT: Target environment (live, test, local)
+//     Defaults to "live" which uses api.live.planton.cloud:443
 //
 // Returns an error if PLANTON_API_KEY is missing.
 func LoadFromEnv() (*Config, error) {
-	apiKey := os.Getenv("PLANTON_API_KEY")
+	apiKey := os.Getenv(APIKeyEnvVar)
 	if apiKey == "" {
 		return nil, fmt.Errorf(
-			"PLANTON_API_KEY environment variable required. " +
+			"%s environment variable required. "+
 				"This should be set by LangGraph when spawning MCP server",
+			APIKeyEnvVar,
 		)
 	}
 
-	endpoint := os.Getenv("PLANTON_APIS_GRPC_ENDPOINT")
-	if endpoint == "" {
-		endpoint = "localhost:8080"
-	}
+	endpoint := getEndpoint()
 
 	return &Config{
 		PlantonAPIKey:           apiKey,
 		PlantonAPIsGRPCEndpoint: endpoint,
 	}, nil
+}
+
+// getEndpoint determines the gRPC endpoint to use based on environment variables.
+// Priority:
+// 1. PLANTON_APIS_GRPC_ENDPOINT (explicit override)
+// 2. PLANTON_CLOUD_ENVIRONMENT (environment-based selection)
+// 3. Default to "live" environment (api.live.planton.cloud:443)
+func getEndpoint() string {
+	// Check for explicit endpoint override first
+	if endpoint := os.Getenv(EndpointOverrideEnvVar); endpoint != "" {
+		return endpoint
+	}
+
+	// Determine environment and return corresponding endpoint
+	env := getEnvironment()
+	switch env {
+	case EnvironmentTest:
+		return TestEndpoint
+	case EnvironmentLocal:
+		return LocalEndpoint
+	case EnvironmentLive:
+		fallthrough
+	default:
+		return LiveEndpoint
+	}
+}
+
+// getEnvironment returns the configured environment, defaulting to "live"
+func getEnvironment() Environment {
+	envStr := os.Getenv(EnvironmentEnvVar)
+	if envStr == "" {
+		return EnvironmentLive
+	}
+
+	env := Environment(envStr)
+	switch env {
+	case EnvironmentLive, EnvironmentTest, EnvironmentLocal:
+		return env
+	default:
+		return EnvironmentLive
+	}
 }
