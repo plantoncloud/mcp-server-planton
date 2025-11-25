@@ -24,6 +24,14 @@ install:
 	@go install ./cmd/mcp-server-planton
 	@echo "Binary installed to GOPATH/bin"
 
+## install-local: Build and install binary to /usr/local/bin (requires sudo)
+install-local: build
+	@echo "Installing $(BINARY_NAME) to /usr/local/bin..."
+	@sudo cp $(BINARY_PATH) /usr/local/bin/$(BINARY_NAME)
+	@sudo chmod +x /usr/local/bin/$(BINARY_NAME)
+	@echo "Binary installed to /usr/local/bin/$(BINARY_NAME)"
+	@echo "You can now use '$(BINARY_NAME)' command globally"
+
 ## test: Run tests
 test:
 	@echo "Running tests..."
