@@ -6,9 +6,9 @@ Thank you for your interest in contributing to the Planton Cloud MCP Server! Thi
 
 ### Prerequisites
 
-- Python 3.11 or higher
-- Poetry package manager
+- Go 1.22 or higher
 - Git
+- Docker (optional, for container testing)
 
 ### Setting Up Development Environment
 
@@ -18,14 +18,14 @@ git clone https://github.com/plantoncloud-inc/mcp-server-planton.git
 cd mcp-server-planton
 ```
 
-2. Install dependencies with Poetry:
+2. Install dependencies:
 ```bash
-poetry install
+go mod download
 ```
 
-3. Activate the virtual environment:
+3. Build the project:
 ```bash
-poetry shell
+make build
 ```
 
 ## Development Workflow
@@ -40,47 +40,123 @@ export PLANTON_APIS_GRPC_ENDPOINT="localhost:8080"
 
 Run the server:
 ```bash
-python src/mcp_server_planton/server.py
+./bin/mcp-server-planton
+```
+
+Or build and run directly:
+```bash
+go run ./cmd/mcp-server-planton
 ```
 
 ### Code Quality
 
-We use `ruff` for linting and `mypy` for type checking.
+We use standard Go tools for code quality.
 
-Run linter:
+Run tests:
 ```bash
-poetry run ruff check src/
+make test
+# or
+go test -v ./...
 ```
 
-Run type checker:
+Run linter (requires golangci-lint):
 ```bash
-poetry run mypy src/
+make lint
+# or
+golangci-lint run
 ```
 
-Fix auto-fixable linting issues:
+Format code:
 ```bash
-poetry run ruff check --fix src/
+go fmt ./...
+```
+
+Vet code:
+```bash
+go vet ./...
 ```
 
 ### Code Style Guidelines
 
-- Follow PEP 8 style guide
-- Use type hints for all functions and methods
-- Write docstrings for all public modules, classes, and functions
+- Follow standard Go conventions and idioms
+- Use `gofmt` for code formatting
+- Write descriptive variable and function names
+- Add comments for exported functions and types
 - Keep functions focused and single-purpose
-- Use descriptive variable names
+- Handle errors explicitly
 
 ## Adding New Tools
 
 To add a new MCP tool:
 
-1. Create or update a client in `src/mcp_server_planton/grpc_clients/`
-2. Add tool implementation in `src/mcp_server_planton/tools/`
-3. Register the tool in `src/mcp_server_planton/server.py`:
-   - Add tool to `list_tools()` function
-   - Add handler to `call_tool()` function
-4. Update documentation
-5. Add tests (when test infrastructure is available)
+1. **Create or update gRPC client** (if needed):
+
+```go
+// internal/grpc/organization_client.go
+package grpc
+
+import (
+    "context"
+    orgv1 "github.com/plantoncloud-inc/planton-cloud/apis/project/planton/provider/blintora/cloud/v1/blintora/cloud/organization/v1"
+    "google.golang.org/grpc"
+)
+
+type OrganizationClient struct {
+    conn   *grpc.ClientConn
+    client orgv1.OrganizationQueryControllerClient
+}
+
+func NewOrganizationClient(grpcEndpoint, userToken string) (*OrganizationClient, error) {
+    // Initialize gRPC client with auth interceptor
+    // ...
+}
+```
+
+2. **Implement the tool**:
+
+```go
+// internal/mcp/tools/organization.go
+package tools
+
+import (
+    "context"
+    "github.com/mark3labs/mcp-go/mcp"
+)
+
+func CreateOrganizationTool() mcp.Tool {
+    return mcp.Tool{
+        Name:        "list_organizations",
+        Description: "List all organizations the user has access to",
+        InputSchema: mcp.ToolInputSchema{
+            Type:       "object",
+            Properties: map[string]interface{}{},
+        },
+    }
+}
+
+func HandleListOrganizations(ctx context.Context, arguments map[string]interface{}, client *grpc.OrganizationClient) ([]mcp.Content, error) {
+    // Implement tool handler
+    // ...
+}
+```
+
+3. **Register in server**:
+
+```go
+// internal/mcp/server.go
+func (s *Server) registerTools() {
+    // Register environment tools
+    s.registerEnvironmentTools()
+    
+    // Register organization tools
+    s.registerOrganizationTools()
+}
+```
+
+4. **Update documentation**:
+   - Add tool description to README.md
+   - Document input/output schema
+   - Provide usage examples
 
 ## Submitting Changes
 
@@ -93,7 +169,11 @@ git checkout -b feature/your-feature-name
 ```
 
 3. Make your changes
-4. Run linting and type checking
+4. Run tests and linting:
+```bash
+make test lint
+```
+
 5. Commit your changes with clear, descriptive messages:
 ```bash
 git commit -m "feat: add new tool for querying organizations"
@@ -129,7 +209,7 @@ refactor: simplify error handling in tools
 
 - Keep PRs focused on a single feature or fix
 - Update documentation for any user-facing changes
-- Ensure all checks pass (linting, type checking)
+- Ensure all checks pass (tests, linting)
 - Provide clear description of changes
 - Reference related issues if applicable
 
@@ -142,7 +222,7 @@ When reporting bugs, please include:
 - Clear description of the issue
 - Steps to reproduce
 - Expected behavior vs actual behavior
-- Environment details (Python version, OS, etc.)
+- Environment details (Go version, OS, etc.)
 - Relevant logs or error messages
 
 ### Feature Requests
@@ -169,4 +249,3 @@ When requesting features, please include:
 ## License
 
 By contributing, you agree that your contributions will be licensed under the Apache-2.0 License.
-

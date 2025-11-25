@@ -4,35 +4,88 @@ This guide covers different ways to install and run the Planton Cloud MCP Server
 
 ## Prerequisites
 
-- Python 3.11 or higher
-- pip or Poetry package manager
 - Access to Planton Cloud (account and JWT token)
+- For binary installation: No additional dependencies
+- For Docker installation: Docker installed
+- For source installation: Go 1.22 or higher
 
 ## Installation Methods
 
-### Method 1: Install from PyPI (Recommended)
+### Method 1: Pre-built Binaries (Recommended)
 
-The simplest way to install:
+Download the latest release for your platform from [GitHub Releases](https://github.com/plantoncloud-inc/mcp-server-planton/releases):
 
+**macOS (ARM64/Apple Silicon):**
 ```bash
-pip install mcp-server-planton
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_arm64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+chmod +x /usr/local/bin/mcp-server-planton
+```
+
+**macOS (Intel):**
+```bash
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_x86_64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+chmod +x /usr/local/bin/mcp-server-planton
+```
+
+**Linux (AMD64):**
+```bash
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Linux_x86_64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+chmod +x /usr/local/bin/mcp-server-planton
+```
+
+**Linux (ARM64):**
+```bash
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Linux_arm64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+chmod +x /usr/local/bin/mcp-server-planton
+```
+
+**Windows (AMD64):**
+```powershell
+# Download from GitHub Releases
+# Extract mcp-server-planton.exe
+# Add to PATH or use full path
 ```
 
 Verify installation:
-
 ```bash
 mcp-server-planton --help
 ```
 
-### Method 2: Install with Poetry
+### Method 2: Docker (Recommended for Containers)
 
-If you prefer Poetry:
+Pull and run from GitHub Container Registry:
 
 ```bash
-poetry add mcp-server-planton
+docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+
+# Or pull specific version
+docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:v0.1.0
 ```
 
-### Method 3: Install from Source
+Run the container:
+
+```bash
+docker run -i --rm \
+  -e USER_JWT_TOKEN="your-jwt-token" \
+  -e PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443" \
+  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+```
+
+### Method 3: Install with go install
+
+If you have Go installed:
+
+```bash
+go install github.com/plantoncloud-inc/mcp-server-planton/cmd/mcp-server-planton@latest
+```
+
+The binary will be installed to `$GOPATH/bin` (typically `~/go/bin`).
+
+### Method 4: Install from Source
 
 For development or latest features:
 
@@ -41,11 +94,11 @@ For development or latest features:
 git clone https://github.com/plantoncloud-inc/mcp-server-planton.git
 cd mcp-server-planton
 
-# Install with Poetry
-poetry install
+# Build
+make build
 
-# Or install with pip
-pip install -e .
+# Install to system
+sudo cp bin/mcp-server-planton /usr/local/bin/
 ```
 
 ## Configuration
@@ -68,7 +121,7 @@ planton auth token
 
 ### 2. Set Environment Variables
 
-Create a `.env` file or export variables:
+Create environment variables for configuration:
 
 ```bash
 export USER_JWT_TOKEN="your-jwt-token-here"
@@ -99,6 +152,7 @@ You should see log output indicating the server started successfully.
 
 Add to your `langgraph.json`:
 
+**Using binary:**
 ```json
 {
   "mcp_servers": {
@@ -113,6 +167,23 @@ Add to your `langgraph.json`:
 }
 ```
 
+**Using Docker:**
+```json
+{
+  "mcp_servers": {
+    "planton-cloud": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "USER_JWT_TOKEN=${USER_JWT_TOKEN}",
+        "-e", "PLANTON_APIS_GRPC_ENDPOINT=${PLANTON_APIS_GRPC_ENDPOINT}",
+        "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
+      ]
+    }
+  }
+}
+```
+
 ### Claude Desktop Integration
 
 Add to Claude Desktop MCP configuration:
@@ -120,6 +191,7 @@ Add to Claude Desktop MCP configuration:
 **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
+**Using binary:**
 ```json
 {
   "mcpServers": {
@@ -129,6 +201,23 @@ Add to Claude Desktop MCP configuration:
         "USER_JWT_TOKEN": "your-jwt-token",
         "PLANTON_APIS_GRPC_ENDPOINT": "apis.planton.cloud:443"
       }
+    }
+  }
+}
+```
+
+**Using Docker:**
+```json
+{
+  "mcpServers": {
+    "planton-cloud": {
+      "command": "docker",
+      "args": [
+        "run", "-i", "--rm",
+        "-e", "USER_JWT_TOKEN=your-jwt-token",
+        "-e", "PLANTON_APIS_GRPC_ENDPOINT=apis.planton.cloud:443",
+        "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
+      ]
     }
   }
 }
@@ -156,15 +245,19 @@ Add to your Cursor MCP settings:
 
 ## Troubleshooting
 
-### Import Errors
+### Binary Not Found
 
-If you encounter import errors related to `blintora_apis_protocolbuffers_python`:
+If you get "command not found" errors:
 
 ```bash
-# Clear pip cache and reinstall
-pip cache purge
-pip uninstall mcp-server-planton
-pip install --no-cache-dir mcp-server-planton
+# Verify binary is in PATH
+which mcp-server-planton
+
+# If not, add to PATH or use full path
+export PATH="$PATH:/usr/local/bin"
+
+# Or use full path
+/usr/local/bin/mcp-server-planton
 ```
 
 ### Connection Issues
@@ -194,23 +287,39 @@ If you get permission denied errors:
 2. Check that your user has permissions in the organization
 3. Contact your Planton Cloud administrator
 
-### Version Conflicts
+### Docker Issues
 
-If you have dependency conflicts:
+If Docker commands fail:
 
 ```bash
-# Use a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-pip install mcp-server-planton
+# Verify Docker is running
+docker ps
+
+# Check Docker logs
+docker logs <container-id>
+
+# Pull latest image
+docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:latest
 ```
 
 ## Updating
 
-### Update from PyPI
+### Update Binary
+
+Download the latest release from GitHub:
 
 ```bash
-pip install --upgrade mcp-server-planton
+# Download new version
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.2.0/mcp-server-planton_0.2.0_Darwin_arm64.tar.gz | tar xz
+
+# Replace existing binary
+sudo mv mcp-server-planton /usr/local/bin/
+```
+
+### Update Docker Image
+
+```bash
+docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:latest
 ```
 
 ### Update from Source
@@ -218,13 +327,28 @@ pip install --upgrade mcp-server-planton
 ```bash
 cd mcp-server-planton
 git pull
-poetry install
+make build
+sudo cp bin/mcp-server-planton /usr/local/bin/
 ```
 
 ## Uninstallation
 
+### Remove Binary
+
 ```bash
-pip uninstall mcp-server-planton
+sudo rm /usr/local/bin/mcp-server-planton
+```
+
+### Remove Docker Image
+
+```bash
+docker rmi ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+```
+
+### Remove Source Build
+
+```bash
+rm -rf mcp-server-planton/
 ```
 
 ## Next Steps
@@ -232,4 +356,3 @@ pip uninstall mcp-server-planton
 - [Configuration Guide](configuration.md) - Detailed configuration options
 - [Development Guide](development.md) - Contributing and development setup
 - [README](../README.md) - Back to main documentation
-

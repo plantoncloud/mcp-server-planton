@@ -37,11 +37,48 @@ export PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443"
 - Staging: `staging.apis.planton.cloud:443`
 - Local development: `localhost:8080`
 
+## Configuration Loading
+
+The MCP server loads configuration from environment variables on startup using the Go standard library.
+
+**Configuration struct:**
+
+```go
+type Config struct {
+    UserJWTToken            string
+    PlantonAPIsGRPCEndpoint string
+}
+```
+
+**Loading process:**
+
+```go
+func LoadFromEnv() (*Config, error) {
+    userJWT := os.Getenv("USER_JWT_TOKEN")
+    if userJWT == "" {
+        return nil, fmt.Errorf(
+            "USER_JWT_TOKEN environment variable required. " +
+            "This should be set by LangGraph when spawning MCP server",
+        )
+    }
+    
+    endpoint := os.Getenv("PLANTON_APIS_GRPC_ENDPOINT")
+    if endpoint == "" {
+        endpoint = "localhost:8080"
+    }
+    
+    return &Config{
+        UserJWTToken:            userJWT,
+        PlantonAPIsGRPCEndpoint: endpoint,
+    }, nil
+}
+```
+
 ## Configuration Files
 
-### .env File
+### Environment Files
 
-Create a `.env` file in your project root:
+Create a `.env` file in your project root for local development:
 
 ```env
 # Required
@@ -51,7 +88,16 @@ USER_JWT_TOKEN=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
 PLANTON_APIS_GRPC_ENDPOINT=apis.planton.cloud:443
 ```
 
-The server automatically loads `.env` files using `pydantic-settings`.
+**Note:** The Go server doesn't automatically load `.env` files. You'll need to source them manually or use a tool like `direnv`:
+
+```bash
+# Source manually
+export $(cat .env | xargs)
+
+# Or use direnv
+echo 'export USER_JWT_TOKEN="..."' > .envrc
+direnv allow
+```
 
 **Security note:** Add `.env` to your `.gitignore`:
 
@@ -107,22 +153,33 @@ In `claude_desktop_config.json`:
 
 ### Logging
 
-The server uses Python's standard logging module. Configure logging level:
+The server uses Go's standard `log` package. Configure logging in the application:
 
-```python
-import logging
+```go
+import "log"
 
-logging.basicConfig(
-    level=logging.DEBUG,  # Or INFO, WARNING, ERROR
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+// Set logging flags
+log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+// Log with standard methods
+log.Println("Server starting...")
+log.Printf("Connecting to: %s", endpoint)
+log.Fatalf("Fatal error: %v", err)
 ```
 
-Or via environment variable:
+**Logging levels:**
+
+The standard Go approach doesn't have log levels, but you can control output:
 
 ```bash
-export LOG_LEVEL=DEBUG
+# Redirect to file
+mcp-server-planton 2> server.log
+
+# Suppress logs (not recommended)
+mcp-server-planton 2>/dev/null
 ```
+
+For structured logging in production, consider adding a logging library like `zerolog` or `zap`.
 
 ### TLS/SSL Configuration
 
@@ -133,34 +190,69 @@ For production deployments with TLS:
 export PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443"
 ```
 
-The gRPC client automatically detects and uses TLS for port 443.
+The gRPC client automatically detects and uses TLS for standard HTTPS ports.
 
 For custom TLS certificates:
 
-```python
-from mcp_server_planton.grpc_clients.environment_client import EnvironmentClient
-import grpc
+```go
+import (
+    "crypto/tls"
+    "crypto/x509"
+    "io/ioutil"
+    
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/credentials"
+)
 
-# Load custom certificates
-with open('ca.pem', 'rb') as f:
-    ca_cert = f.read()
+// Load custom certificates
+cert, err := ioutil.ReadFile("ca.pem")
+if err != nil {
+    log.Fatal(err)
+}
 
-credentials = grpc.ssl_channel_credentials(ca_cert)
-# Configure client with credentials
+certPool := x509.NewCertPool()
+certPool.AppendCertsFromPEM(cert)
+
+tlsConfig := &tls.Config{
+    RootCAs: certPool,
+}
+
+creds := credentials.NewTLS(tlsConfig)
+opts := []grpc.DialOption{
+    grpc.WithTransportCredentials(creds),
+}
+
+conn, err := grpc.Dial(endpoint, opts...)
 ```
 
 ### Timeout Configuration
 
-Default gRPC timeout is 30 seconds. To customize:
+Default gRPC timeout is context-based. To customize timeouts:
 
-```python
-from mcp_server_planton.grpc_clients.environment_client import EnvironmentClient
-
-client = EnvironmentClient(
-    grpc_endpoint="apis.planton.cloud:443",
-    user_token="your-token",
-    timeout=60  # 60 seconds
+```go
+import (
+    "context"
+    "time"
 )
+
+// Set timeout on context
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+
+// Use context in gRPC calls
+resp, err := client.ListEnvironments(ctx, req)
+```
+
+### Connection Pooling
+
+gRPC connections in Go are designed to be long-lived and multiplexed. The default behavior is optimal for most use cases:
+
+```go
+// Single connection handles multiple concurrent RPCs
+conn, err := grpc.NewClient(endpoint, opts...)
+
+// Connection is reused across multiple calls
+client := environmentv1.NewEnvironmentQueryControllerClient(conn)
 ```
 
 ## Security Best Practices
@@ -216,19 +308,45 @@ stringData:
   PLANTON_APIS_GRPC_ENDPOINT: "apis.planton.cloud:443"
 ```
 
+**Using secrets in Pod:**
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mcp-server
+spec:
+  containers:
+  - name: mcp-server
+    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    envFrom:
+    - secretRef:
+        name: planton-mcp-config
+```
+
 ## Validation
 
-Verify your configuration:
+Verify your configuration programmatically:
 
-```python
-from mcp_server_planton.config import MCPServerConfig
+```go
+package main
 
-try:
-    config = MCPServerConfig.load_from_env()
-    print(f"Configuration valid!")
-    print(f"Endpoint: {config.planton_apis_grpc_endpoint}")
-except ValueError as e:
-    print(f"Configuration error: {e}")
+import (
+    "fmt"
+    "log"
+    
+    "github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+)
+
+func main() {
+    cfg, err := config.LoadFromEnv()
+    if err != nil {
+        log.Fatalf("Configuration error: %v", err)
+    }
+    
+    fmt.Println("Configuration valid!")
+    fmt.Printf("Endpoint: %s\n", cfg.PlantonAPIsGRPCEndpoint)
+    fmt.Printf("Token present: %t\n", cfg.UserJWTToken != "")
+}
 ```
 
 ## Troubleshooting
@@ -236,15 +354,19 @@ except ValueError as e:
 ### Missing Token Error
 
 ```
-ValueError: USER_JWT_TOKEN environment variable required
+Configuration error: USER_JWT_TOKEN environment variable required
 ```
 
 **Solution:** Set the `USER_JWT_TOKEN` environment variable.
 
+```bash
+export USER_JWT_TOKEN="your-token-here"
+```
+
 ### Invalid Token Error
 
 ```
-grpc.RpcError: code=UNAUTHENTICATED, details=Invalid authentication credentials
+rpc error: code = Unauthenticated desc = Invalid authentication credentials
 ```
 
 **Solutions:**
@@ -255,7 +377,7 @@ grpc.RpcError: code=UNAUTHENTICATED, details=Invalid authentication credentials
 ### Connection Refused
 
 ```
-grpc.RpcError: code=UNAVAILABLE, details=failed to connect to all addresses
+rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing dial tcp: connect: connection refused"
 ```
 
 **Solutions:**
@@ -264,9 +386,51 @@ grpc.RpcError: code=UNAVAILABLE, details=failed to connect to all addresses
 3. Ensure firewall allows gRPC traffic
 4. Try pinging the endpoint
 
+### Context Deadline Exceeded
+
+```
+rpc error: code = DeadlineExceeded desc = context deadline exceeded
+```
+
+**Solutions:**
+1. Check network latency
+2. Increase timeout in context
+3. Verify API server is responding
+
+## Configuration Examples
+
+### Local Development
+
+```bash
+export USER_JWT_TOKEN="dev-token-from-local-planton"
+export PLANTON_APIS_GRPC_ENDPOINT="localhost:8080"
+mcp-server-planton
+```
+
+### Production
+
+```bash
+export USER_JWT_TOKEN="$(vault kv get -field=token secret/planton/jwt)"
+export PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443"
+mcp-server-planton
+```
+
+### Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  mcp-server:
+    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    environment:
+      USER_JWT_TOKEN: ${USER_JWT_TOKEN}
+      PLANTON_APIS_GRPC_ENDPOINT: apis.planton.cloud:443
+    stdin_open: true
+    tty: true
+```
+
 ## Next Steps
 
 - [Installation Guide](installation.md) - Installation instructions
 - [Development Guide](development.md) - Development setup
 - [README](../README.md) - Back to main documentation
-

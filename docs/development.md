@@ -6,9 +6,10 @@ Guide for contributing to and developing the Planton Cloud MCP Server.
 
 ### Prerequisites
 
-- Python 3.11+
-- Poetry 1.5+
+- Go 1.22+
 - Git
+- Docker (optional, for container testing)
+- golangci-lint (optional, for linting)
 - Access to Planton Cloud APIs (local or remote)
 
 ### Initial Setup
@@ -23,20 +24,20 @@ cd mcp-server-planton
 2. Install dependencies:
 
 ```bash
-poetry install
+go mod download
 ```
 
-3. Activate virtual environment:
+3. Build the project:
 
 ```bash
-poetry shell
+make build
 ```
 
 4. Set up environment variables:
 
 ```bash
-cp .env.example .env
-# Edit .env with your configuration
+export USER_JWT_TOKEN="your-jwt-token"
+export PLANTON_APIS_GRPC_ENDPOINT="localhost:8080"
 ```
 
 ## Development Workflow
@@ -48,90 +49,140 @@ cp .env.example .env
 export USER_JWT_TOKEN="your-jwt-token"
 export PLANTON_APIS_GRPC_ENDPOINT="localhost:8080"
 
-# Run server
-python src/mcp_server_planton/server.py
+# Run server from binary
+./bin/mcp-server-planton
+
+# Or build and run directly
+go run ./cmd/mcp-server-planton
 ```
 
 ### Code Quality Tools
 
-#### Linting with Ruff
+#### Running Tests
 
 ```bash
-# Check for issues
-poetry run ruff check src/
+# Run all tests
+make test
 
-# Auto-fix issues
-poetry run ruff check --fix src/
+# Or use go test directly
+go test -v ./...
 
-# Check specific file
-poetry run ruff check src/mcp_server_planton/server.py
+# Run tests with coverage
+go test -v -cover ./...
+
+# Run tests with coverage report
+go test -v -coverprofile=coverage.out ./...
+go tool cover -html=coverage.out
 ```
 
-#### Type Checking with MyPy
+#### Linting
 
 ```bash
-# Run type checker
-poetry run mypy src/
+# Run linter (requires golangci-lint)
+make lint
 
-# Check specific file
-poetry run mypy src/mcp_server_planton/server.py
+# Or run golangci-lint directly
+golangci-lint run
+
+# Install golangci-lint if needed
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+```
+
+#### Code Formatting
+
+```bash
+# Format code
+go fmt ./...
+
+# Check for common issues
+go vet ./...
 ```
 
 #### Running All Checks
 
 ```bash
-# Run linting and type checking
-poetry run ruff check src/ && poetry run mypy src/
+# Format, vet, test, and lint
+go fmt ./... && go vet ./... && go test ./... && golangci-lint run
 ```
 
 ### Testing
 
-Currently, the project doesn't have automated tests. This is a great area for contributions!
+The project uses standard Go testing patterns.
 
-**Planned test structure:**
+**Test structure:**
 
 ```
-tests/
-├── unit/
-│   ├── test_config.py
-│   ├── test_auth/
-│   │   └── test_interceptor.py
-│   ├── test_grpc_clients/
-│   │   └── test_environment_client.py
-│   └── test_tools/
-│       └── test_environment_tools.py
-└── integration/
-    └── test_server.py
+internal/
+├── config/
+│   └── config_test.go
+├── grpc/
+│   ├── client_test.go
+│   └── interceptor_test.go
+└── mcp/
+    ├── server_test.go
+    └── tools/
+        └── environment_test.go
+```
+
+**Writing tests:**
+
+```go
+package config_test
+
+import (
+    "os"
+    "testing"
+    
+    "github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+)
+
+func TestLoadFromEnv(t *testing.T) {
+    // Set up test environment
+    os.Setenv("USER_JWT_TOKEN", "test-token")
+    defer os.Unsetenv("USER_JWT_TOKEN")
+    
+    cfg, err := config.LoadFromEnv()
+    if err != nil {
+        t.Fatalf("Expected no error, got: %v", err)
+    }
+    
+    if cfg.UserJWTToken != "test-token" {
+        t.Errorf("Expected token 'test-token', got: %s", cfg.UserJWTToken)
+    }
+}
 ```
 
 ## Project Structure
 
 ```
 mcp-server-planton/
-├── src/
-│   └── mcp_server_planton/         # Main package
-│       ├── __init__.py             # Package initialization
-│       ├── server.py               # MCP server entry point
-│       ├── config.py               # Configuration management
-│       ├── auth/                   # Authentication modules
-│       │   ├── __init__.py
-│       │   └── user_token_interceptor.py  # gRPC auth interceptor
-│       ├── grpc_clients/           # gRPC client implementations
-│       │   ├── __init__.py
-│       │   └── environment_client.py      # Environment API client
-│       └── tools/                  # MCP tool implementations
-│           ├── __init__.py
-│           └── environment_tools.py       # Environment query tools
+├── cmd/
+│   └── mcp-server-planton/
+│       └── main.go                 # Entry point
+├── internal/
+│   ├── config/
+│   │   └── config.go               # Configuration management
+│   ├── grpc/
+│   │   ├── interceptor.go          # gRPC auth interceptor
+│   │   └── client.go               # Environment gRPC client
+│   └── mcp/
+│       ├── server.go               # MCP server setup
+│       └── tools/
+│           └── environment.go      # Environment query tools
+├── archive/
+│   └── python/                     # Archived Python implementation
 ├── docs/                           # Documentation
 │   ├── installation.md
 │   ├── configuration.md
 │   └── development.md
 ├── .github/
 │   └── workflows/                  # CI/CD pipelines
-│       ├── ci.yml
-│       └── publish.yml
-├── pyproject.toml                  # Poetry configuration
-├── poetry.toml                     # Poetry settings
+│       └── release.yml
+├── .goreleaser.yaml                # Multi-platform build config
+├── Dockerfile                      # Multi-stage container build
+├── Makefile                        # Build commands
+├── go.mod                          # Go dependencies
+├── go.sum                          # Dependency checksums
 ├── README.md                       # Main documentation
 ├── LICENSE                         # Apache-2.0 license
 ├── CONTRIBUTING.md                 # Contribution guidelines
@@ -144,57 +195,121 @@ mcp-server-planton/
 
 1. **Create or update gRPC client** (if needed):
 
-```python
-# src/mcp_server_planton/grpc_clients/organization_client.py
-class OrganizationClient:
-    def __init__(self, grpc_endpoint: str, user_token: str):
-        # Initialize gRPC client
-        pass
+```go
+// internal/grpc/organization_client.go
+package grpc
+
+import (
+    "context"
     
-    async def list_organizations(self):
-        # Implement API call
-        pass
+    orgv1 "github.com/plantoncloud-inc/planton-cloud/apis/project/planton/provider/blintora/cloud/v1/blintora/cloud/organization/v1"
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/credentials/insecure"
+)
+
+type OrganizationClient struct {
+    conn   *grpc.ClientConn
+    client orgv1.OrganizationQueryControllerClient
+}
+
+func NewOrganizationClient(grpcEndpoint, userToken string) (*OrganizationClient, error) {
+    opts := []grpc.DialOption{
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+        grpc.WithUnaryInterceptor(UserTokenAuthInterceptor(userToken)),
+    }
+    
+    conn, err := grpc.NewClient(grpcEndpoint, opts...)
+    if err != nil {
+        return nil, err
+    }
+    
+    client := orgv1.NewOrganizationQueryControllerClient(conn)
+    
+    return &OrganizationClient{
+        conn:   conn,
+        client: client,
+    }, nil
+}
+
+func (c *OrganizationClient) ListOrganizations(ctx context.Context) ([]*orgv1.Organization, error) {
+    resp, err := c.client.List(ctx, &orgv1.ListRequest{})
+    if err != nil {
+        return nil, err
+    }
+    return resp.Organizations, nil
+}
+
+func (c *OrganizationClient) Close() error {
+    return c.conn.Close()
+}
 ```
 
 2. **Implement the tool**:
 
-```python
-# src/mcp_server_planton/tools/organization_tools.py
-from mcp.types import Tool, TextContent
+```go
+// internal/mcp/tools/organization.go
+package tools
 
-def create_organization_tool() -> Tool:
-    return Tool(
-        name="list_organizations",
-        description="List all organizations the user has access to",
-        inputSchema={"type": "object", "properties": {}}
-    )
+import (
+    "context"
+    "encoding/json"
+    
+    "github.com/mark3labs/mcp-go/mcp"
+    "github.com/plantoncloud-inc/mcp-server-planton/internal/grpc"
+)
 
-async def handle_list_organizations(arguments, config):
-    # Implement tool handler
-    pass
+func CreateOrganizationTool() mcp.Tool {
+    return mcp.Tool{
+        Name: "list_organizations",
+        Description: "List all organizations the user has access to",
+        InputSchema: mcp.ToolInputSchema{
+            Type:       "object",
+            Properties: map[string]interface{}{},
+        },
+    }
+}
+
+func HandleListOrganizations(ctx context.Context, arguments map[string]interface{}, client *grpc.OrganizationClient) ([]mcp.Content, error) {
+    orgs, err := client.ListOrganizations(ctx)
+    if err != nil {
+        return nil, err
+    }
+    
+    jsonData, err := json.MarshalIndent(orgs, "", "  ")
+    if err != nil {
+        return nil, err
+    }
+    
+    return []mcp.Content{
+        {
+            Type: "text",
+            Text: string(jsonData),
+        },
+    }, nil
+}
 ```
 
 3. **Register in server**:
 
-```python
-# src/mcp_server_planton/server.py
-from mcp_server_planton.tools.organization_tools import (
-    create_organization_tool,
-    handle_list_organizations,
-)
+```go
+// internal/mcp/server.go
+func (s *Server) registerTools() {
+    // Register environment tools
+    s.registerEnvironmentTools()
+    
+    // Register organization tools
+    s.registerOrganizationTools()
+}
 
-@mcp_server.list_tools()
-async def list_tools():
-    return [
-        create_environment_tool(),
-        create_organization_tool(),  # Add new tool
-    ]
-
-@mcp_server.call_tool()
-async def call_tool(name, arguments):
-    if name == "list_organizations":
-        return await handle_list_organizations(arguments, server_config)
-    # ... other tools
+func (s *Server) registerOrganizationTools() {
+    // Register list_organizations tool
+    s.mcpServer.AddTool(
+        tools.CreateOrganizationTool(),
+        func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+            return s.handleListOrganizations(ctx, request)
+        },
+    )
+}
 ```
 
 4. **Update documentation**:
@@ -204,48 +319,42 @@ async def call_tool(name, arguments):
 
 ### Code Style Guidelines
 
-- **Type hints**: Use type hints for all function signatures
-- **Docstrings**: Document all public functions and classes
-- **Error handling**: Handle gRPC errors gracefully
-- **Logging**: Use appropriate log levels (INFO, ERROR, DEBUG)
-- **Naming**: Use descriptive variable and function names
+- **Error handling**: Always handle errors explicitly, never ignore them
+- **Context propagation**: Pass `context.Context` as first parameter for network calls
+- **Documentation**: Add godoc comments for all exported types and functions
+- **Naming**: Use descriptive names following Go conventions
+- **Package organization**: Keep packages focused and cohesive
 
 **Example:**
 
-```python
-async def fetch_resource_by_id(
-    resource_id: str,
-    user_token: str
-) -> Optional[Resource]:
-    """
-    Fetch a resource by its ID.
+```go
+// FetchResourceByID retrieves a cloud resource by its unique identifier.
+//
+// The function respects the user's permissions via the JWT token in the context.
+// Returns an error if the resource doesn't exist or the user lacks permissions.
+func FetchResourceByID(ctx context.Context, resourceID string, client ResourceClient) (*Resource, error) {
+    if resourceID == "" {
+        return nil, fmt.Errorf("resource ID cannot be empty")
+    }
     
-    Args:
-        resource_id: Unique identifier of the resource
-        user_token: User's JWT token
-        
-    Returns:
-        Resource object if found, None otherwise
-        
-    Raises:
-        grpc.RpcError: If the API call fails
-    """
-    logger.info(f"Fetching resource: {resource_id}")
-    try:
-        # Implementation
-        pass
-    except grpc.RpcError as e:
-        logger.error(f"Failed to fetch resource: {e}")
-        raise
+    resource, err := client.GetResource(ctx, resourceID)
+    if err != nil {
+        return nil, fmt.Errorf("failed to fetch resource %s: %w", resourceID, err)
+    }
+    
+    return resource, nil
+}
 ```
 
 ## Debugging
 
 ### Enable Debug Logging
 
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
+```go
+// In main.go or any package
+import "log"
+
+log.SetFlags(log.LstdFlags | log.Lshortfile)
 ```
 
 ### Debugging gRPC Calls
@@ -253,101 +362,161 @@ logging.basicConfig(level=logging.DEBUG)
 Enable gRPC debug logging:
 
 ```bash
-export GRPC_VERBOSITY=DEBUG
-export GRPC_TRACE=all
+export GRPC_GO_LOG_VERBOSITY_LEVEL=99
+export GRPC_GO_LOG_SEVERITY_LEVEL=info
 ```
 
-### Using Python Debugger
+### Using Delve Debugger
 
-```python
-import pdb; pdb.set_trace()  # Breakpoint
+```bash
+# Install delve
+go install github.com/go-delve/delve/cmd/dlv@latest
+
+# Debug the application
+dlv debug ./cmd/mcp-server-planton
+
+# Or attach to running process
+dlv attach <pid>
 ```
 
-Or use IDE debuggers in VS Code, PyCharm, etc.
+### Using IDE Debuggers
+
+Most Go IDEs (VS Code, GoLand, etc.) have excellent debugging support:
+
+**VS Code**: Use the Go extension and create a launch configuration
+**GoLand**: Built-in debugger with breakpoints and variable inspection
+
+## Building and Distribution
+
+### Local Build
+
+```bash
+# Build for current architecture
+make build
+
+# Build for specific architecture
+GOOS=linux GOARCH=amd64 go build -o bin/mcp-server-planton ./cmd/mcp-server-planton
+```
+
+### Docker Build
+
+```bash
+# Build Docker image
+make docker-build
+
+# Run Docker image
+make docker-run
+```
+
+### Multi-platform Build with GoReleaser
+
+```bash
+# Install GoReleaser
+go install github.com/goreleaser/goreleaser@latest
+
+# Build without publishing (snapshot)
+goreleaser build --snapshot --clean
+
+# Full release (requires tag)
+git tag v0.2.0
+goreleaser release --clean
+```
 
 ## Releasing
 
 ### Version Bumping
 
-Update version in `pyproject.toml`:
-
-```toml
-[tool.poetry]
-version = "0.2.0"
-```
-
-And in `src/mcp_server_planton/__init__.py`:
-
-```python
-__version__ = "0.2.0"
-```
+Version is set via Git tags following semantic versioning.
 
 ### Creating a Release
 
 1. Create a git tag:
 
 ```bash
-git tag v0.2.0
+git tag -a v0.2.0 -m "Release v0.2.0
+
+- Add organization query tools
+- Improve error handling
+- Update documentation"
+
 git push origin v0.2.0
 ```
 
 2. GitHub Actions will automatically:
-   - Build the package
-   - Run tests (when available)
-   - Publish to PyPI
-   - Create GitHub release
-
-### Manual Publishing (if needed)
-
-```bash
-# Build package
-poetry build
-
-# Publish to PyPI
-poetry publish
-```
+   - Build binaries for all platforms via GoReleaser
+   - Build multi-arch Docker images
+   - Push images to GitHub Container Registry
+   - Create GitHub release with artifacts
 
 ## Continuous Integration
 
 The project uses GitHub Actions for CI/CD:
 
-- **ci.yml**: Runs on every push/PR
-  - Linting with ruff
-  - Type checking with mypy
-  - Tests (when available)
-
-- **publish.yml**: Runs on tag push
-  - Builds package
-  - Publishes to PyPI
+- **release.yml**: Runs on tag push
+  - Builds binaries for multiple platforms
+  - Builds and publishes Docker images
   - Creates GitHub release
 
 ## Common Issues
 
-### Import Errors
+### Module Cache Issues
 
-If you get import errors for `blintora_apis_protocolbuffers_python`:
+If you get module-related errors:
 
 ```bash
-poetry lock --no-update
-poetry install
+go clean -modcache
+go mod download
 ```
 
 ### gRPC Connection Issues
 
 Test gRPC connection:
 
-```python
-import grpc
+```go
+package main
 
-channel = grpc.insecure_channel('localhost:8080')
-grpc.channel_ready_future(channel).result(timeout=10)
+import (
+    "context"
+    "log"
+    "time"
+    
+    "google.golang.org/grpc"
+    "google.golang.org/grpc/credentials/insecure"
+)
+
+func main() {
+    ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+    defer cancel()
+    
+    conn, err := grpc.DialContext(ctx, "localhost:8080",
+        grpc.WithTransportCredentials(insecure.NewCredentials()),
+        grpc.WithBlock(),
+    )
+    if err != nil {
+        log.Fatalf("Failed to connect: %v", err)
+    }
+    defer conn.Close()
+    
+    log.Println("Connection successful!")
+}
+```
+
+### Build Issues
+
+```bash
+# Clean build cache
+go clean -cache
+
+# Rebuild everything
+go build -a ./cmd/mcp-server-planton
 ```
 
 ## Resources
 
 - [MCP Protocol Documentation](https://modelcontextprotocol.io)
-- [gRPC Python Guide](https://grpc.io/docs/languages/python/)
-- [Poetry Documentation](https://python-poetry.org/docs/)
+- [gRPC Go Guide](https://grpc.io/docs/languages/go/)
+- [Effective Go](https://go.dev/doc/effective_go)
+- [Go Code Review Comments](https://github.com/golang/go/wiki/CodeReviewComments)
 - [Planton Cloud Documentation](https://docs.planton.cloud)
 
 ## Getting Help
@@ -355,4 +524,3 @@ grpc.channel_ready_future(channel).result(timeout=10)
 - **Issues**: [GitHub Issues](https://github.com/plantoncloud-inc/mcp-server-planton/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/plantoncloud-inc/mcp-server-planton/discussions)
 - **Contributing**: See [CONTRIBUTING.md](../CONTRIBUTING.md)
-
