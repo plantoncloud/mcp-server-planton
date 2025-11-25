@@ -1,4 +1,4 @@
-package tools
+package cloudresource
 
 import (
 	"context"
@@ -7,8 +7,9 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/clients"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -48,7 +49,7 @@ func HandleGetCloudResourceById(
 	// Extract resource_id from arguments
 	resourceID, ok := arguments["resource_id"].(string)
 	if !ok || resourceID == "" {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
 			Message: "resource_id is required",
 		}
@@ -59,12 +60,12 @@ func HandleGetCloudResourceById(
 	log.Printf("Tool invoked: get_cloud_resource_by_id, resource_id=%s", resourceID)
 
 	// Create gRPC client with user's API key
-	client, err := infrahub.NewCloudResourceQueryClient(
+	client, err := clients.NewCloudResourceQueryClient(
 		cfg.PlantonAPIsGRPCEndpoint,
 		cfg.PlantonAPIKey,
 	)
 	if err != nil {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "CLIENT_ERROR",
 			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
 		}
@@ -76,7 +77,7 @@ func HandleGetCloudResourceById(
 	// Get cloud resource by ID
 	cloudResource, err := client.GetById(ctx, resourceID)
 	if err != nil {
-		return HandleGRPCError(err, ""), nil
+		return errors.HandleGRPCError(err, ""), nil
 	}
 
 	log.Printf("Tool completed: get_cloud_resource_by_id, retrieved resource: %s", resourceID)
@@ -91,7 +92,7 @@ func HandleGetCloudResourceById(
 
 	resultJSON, err := marshaler.Marshal(cloudResource)
 	if err != nil {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INTERNAL_ERROR",
 			Message: fmt.Sprintf("Failed to marshal cloud resource: %v", err),
 		}
@@ -101,3 +102,4 @@ func HandleGetCloudResourceById(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
+

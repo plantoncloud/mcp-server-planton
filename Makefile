@@ -72,20 +72,20 @@ clean:
 	@rm -rf dist/
 	@echo "Clean complete"
 
-## release: Create and push a release tag (usage: make release TAG=v1.0.0)
+## release: Create and push a release version (usage: make release version=v1.0.0)
 release:
-ifndef TAG
-	@echo "Error: TAG is required. Usage: make release TAG=v1.0.0"
+ifndef version
+	@echo "Error: version is required. Usage: make release version=v1.0.0"
 	@exit 1
 endif
-	@echo "Creating release tag $(TAG)..."
-	@if ! echo "$(TAG)" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+'; then \
-		echo "Error: TAG must follow semantic versioning (e.g., v1.0.0, v2.1.3)"; \
+	@echo "Creating release version $(version)..."
+	@if ! echo "$(version)" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+'; then \
+		echo "Error: version must follow semantic versioning (e.g., v1.0.0, v2.1.3)"; \
 		exit 1; \
 	fi
-	@git tag -a $(TAG) -m "Release $(TAG)"
-	@git push origin $(TAG)
-	@echo "Release tag $(TAG) created and pushed"
+	@git version -a $(version) -m "Release $(version)"
+	@git push origin $(version)
+	@echo "Release version $(version) created and pushed"
 	@echo "GitHub Actions will now build and publish the release"
 
 ## help: Show this help message

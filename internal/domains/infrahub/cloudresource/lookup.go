@@ -1,4 +1,4 @@
-package tools
+package cloudresource
 
 import (
 	"context"
@@ -10,8 +10,9 @@ import (
 	apiresourcekind "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/apiresource/apiresourcekind"
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
 	"github.com/mark3labs/mcp-go/mcp"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/clients"
 )
 
 // CreateLookupCloudResourceByNameTool creates the MCP tool definition for looking up a cloud resource by name.
@@ -62,7 +63,7 @@ func HandleLookupCloudResourceByName(
 	// Extract org_id from arguments
 	orgID, ok := arguments["org_id"].(string)
 	if !ok || orgID == "" {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
 			Message: "org_id is required",
 		}
@@ -73,7 +74,7 @@ func HandleLookupCloudResourceByName(
 	// Extract env_name
 	envName, ok := arguments["env_name"].(string)
 	if !ok || envName == "" {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
 			Message: "env_name is required",
 			OrgID:   orgID,
@@ -85,7 +86,7 @@ func HandleLookupCloudResourceByName(
 	// Extract cloud_resource_kind
 	kindStr, ok := arguments["cloud_resource_kind"].(string)
 	if !ok || kindStr == "" {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
 			Message: "cloud_resource_kind is required",
 			OrgID:   orgID,
@@ -97,7 +98,7 @@ func HandleLookupCloudResourceByName(
 	// Convert kind string to enum
 	kindValue, found := cloudresourcekind.CloudResourceKind_value[kindStr]
 	if !found {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
 			Message: fmt.Sprintf("Unknown CloudResourceKind: %s. Use list_cloud_resource_kinds to see available kinds", kindStr),
 			OrgID:   orgID,
@@ -110,7 +111,7 @@ func HandleLookupCloudResourceByName(
 	// Extract name
 	name, ok := arguments["name"].(string)
 	if !ok || name == "" {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
 			Message: "name is required",
 			OrgID:   orgID,
@@ -126,12 +127,12 @@ func HandleLookupCloudResourceByName(
 		orgID, envName, kindStr, name)
 
 	// Create gRPC client with user's API key
-	client, err := infrahub.NewCloudResourceSearchClient(
+	client, err := clients.NewCloudResourceSearchClient(
 		cfg.PlantonAPIsGRPCEndpoint,
 		cfg.PlantonAPIKey,
 	)
 	if err != nil {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "CLIENT_ERROR",
 			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
 			OrgID:   orgID,
@@ -144,7 +145,7 @@ func HandleLookupCloudResourceByName(
 	// Lookup cloud resource
 	record, err := client.LookupCloudResource(ctx, orgID, envName, kind, name)
 	if err != nil {
-		return HandleGRPCError(err, orgID), nil
+		return errors.HandleGRPCError(err, orgID), nil
 	}
 
 	// Convert to simplified structure
@@ -167,7 +168,7 @@ func HandleLookupCloudResourceByName(
 	// Return formatted JSON response
 	resultJSON, err := json.MarshalIndent(resource, "", "  ")
 	if err != nil {
-		errResp := ErrorResponse{
+		errResp := errors.ErrorResponse{
 			Error:   "INTERNAL_ERROR",
 			Message: fmt.Sprintf("Failed to marshal response: %v", err),
 			OrgID:   orgID,
@@ -178,3 +179,4 @@ func HandleLookupCloudResourceByName(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
+

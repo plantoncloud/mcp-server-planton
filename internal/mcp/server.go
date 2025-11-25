@@ -1,14 +1,12 @@
 package mcp
 
 import (
-	"context"
 	"log"
 
-	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	infrahubtools "github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub/tools"
-	resourcemanagertools "github.com/plantoncloud-inc/mcp-server-planton/internal/resourcemanager/tools"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/resourcemanager"
 )
 
 // Server wraps the MCP server instance and configuration.
@@ -42,55 +40,15 @@ func NewServer(cfg *config.Config) *Server {
 
 // registerTools registers all available MCP tools with their handlers.
 func (s *Server) registerTools() {
-	// Register list_environments_for_org tool
-	s.mcpServer.AddTool(
-		resourcemanagertools.CreateEnvironmentTool(),
-		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-			ctx := context.Background()
-			return resourcemanagertools.HandleListEnvironmentsForOrg(ctx, arguments, s.config)
-		},
-	)
-	log.Println("Registered tool: list_environments_for_org")
+	log.Println("Registering MCP tools...")
 
-	// Register list_cloud_resource_kinds tool
-	s.mcpServer.AddTool(
-		infrahubtools.CreateListCloudResourceKindsTool(),
-		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-			ctx := context.Background()
-			return infrahubtools.HandleListCloudResourceKinds(ctx, arguments, s.config)
-		},
-	)
-	log.Println("Registered tool: list_cloud_resource_kinds")
+	// Register InfraHub tools
+	infrahub.RegisterTools(s.mcpServer, s.config)
 
-	// Register search_cloud_resources tool
-	s.mcpServer.AddTool(
-		infrahubtools.CreateSearchCloudResourcesTool(),
-		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-			ctx := context.Background()
-			return infrahubtools.HandleSearchCloudResources(ctx, arguments, s.config)
-		},
-	)
-	log.Println("Registered tool: search_cloud_resources")
+	// Register ResourceManager tools
+	resourcemanager.RegisterTools(s.mcpServer, s.config)
 
-	// Register lookup_cloud_resource_by_name tool
-	s.mcpServer.AddTool(
-		infrahubtools.CreateLookupCloudResourceByNameTool(),
-		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-			ctx := context.Background()
-			return infrahubtools.HandleLookupCloudResourceByName(ctx, arguments, s.config)
-		},
-	)
-	log.Println("Registered tool: lookup_cloud_resource_by_name")
-
-	// Register get_cloud_resource_by_id tool
-	s.mcpServer.AddTool(
-		infrahubtools.CreateGetCloudResourceByIdTool(),
-		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-			ctx := context.Background()
-			return infrahubtools.HandleGetCloudResourceById(ctx, arguments, s.config)
-		},
-	)
-	log.Println("Registered tool: get_cloud_resource_by_id")
+	log.Println("All tools registered successfully")
 }
 
 // Serve starts the MCP server with stdio transport.
