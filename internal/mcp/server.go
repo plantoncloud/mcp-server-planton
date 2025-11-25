@@ -45,17 +45,51 @@ func (s *Server) registerTools() {
 	s.mcpServer.AddTool(
 		tools.CreateEnvironmentTool(),
 		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-			// Create context for the tool handler
 			ctx := context.Background()
-			return tools.HandleListEnvironmentsForOrg(
-				ctx,
-				arguments,
-				s.config,
-			)
+			return tools.HandleListEnvironmentsForOrg(ctx, arguments, s.config)
 		},
 	)
-
 	log.Println("Registered tool: list_environments_for_org")
+
+	// Register list_cloud_resource_kinds tool
+	s.mcpServer.AddTool(
+		tools.CreateListCloudResourceKindsTool(),
+		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
+			ctx := context.Background()
+			return tools.HandleListCloudResourceKinds(ctx, arguments, s.config)
+		},
+	)
+	log.Println("Registered tool: list_cloud_resource_kinds")
+
+	// Register search_cloud_resources tool
+	s.mcpServer.AddTool(
+		tools.CreateSearchCloudResourcesTool(),
+		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
+			ctx := context.Background()
+			return tools.HandleSearchCloudResources(ctx, arguments, s.config)
+		},
+	)
+	log.Println("Registered tool: search_cloud_resources")
+
+	// Register lookup_cloud_resource_by_name tool
+	s.mcpServer.AddTool(
+		tools.CreateLookupCloudResourceByNameTool(),
+		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
+			ctx := context.Background()
+			return tools.HandleLookupCloudResourceByName(ctx, arguments, s.config)
+		},
+	)
+	log.Println("Registered tool: lookup_cloud_resource_by_name")
+
+	// Register get_cloud_resource_by_id tool
+	s.mcpServer.AddTool(
+		tools.CreateGetCloudResourceByIdTool(),
+		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
+			ctx := context.Background()
+			return tools.HandleGetCloudResourceById(ctx, arguments, s.config)
+		},
+	)
+	log.Println("Registered tool: get_cloud_resource_by_id")
 }
 
 // Serve starts the MCP server with stdio transport.
@@ -65,4 +99,3 @@ func (s *Server) Serve() error {
 	log.Println("Starting MCP server on stdio...")
 	return server.ServeStdio(s.mcpServer)
 }
-
