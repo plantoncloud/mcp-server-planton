@@ -1,4 +1,4 @@
-package grpc
+package resourcemanager
 
 import (
 	"context"
@@ -8,6 +8,7 @@ import (
 	environmentv1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/resourcemanager/environment/v1"
 	environmentv1grpc "buf.build/gen/go/blintora/apis/grpc/go/ai/planton/resourcemanager/environment/v1/environmentv1grpc"
 	organizationv1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/resourcemanager/organization/v1"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -34,7 +35,7 @@ func NewEnvironmentClient(grpcEndpoint, apiKey string) (*EnvironmentClient, erro
 	// Create gRPC dial options with auth interceptor
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
-		grpc.WithUnaryInterceptor(UserTokenAuthInterceptor(apiKey)),
+		grpc.WithUnaryInterceptor(auth.UserTokenAuthInterceptor(apiKey)),
 	}
 
 	// Establish connection
@@ -96,3 +97,4 @@ func (c *EnvironmentClient) Close() error {
 	}
 	return nil
 }
+

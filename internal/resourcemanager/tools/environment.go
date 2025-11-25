@@ -8,9 +8,8 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	grpcclient "github.com/plantoncloud-inc/mcp-server-planton/internal/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub/tools"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/resourcemanager"
 )
 
 // EnvironmentSimple is a simplified representation of an Environment for JSON serialization.
@@ -19,13 +18,6 @@ type EnvironmentSimple struct {
 	Slug        string `json:"slug"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
-}
-
-// ErrorResponse represents an error response for MCP tool calls.
-type ErrorResponse struct {
-	Error   string `json:"error"`
-	Message string `json:"message"`
-	OrgID   string `json:"org_id,omitempty"`
 }
 
 // CreateEnvironmentTool creates the MCP tool definition for listing environments.
@@ -64,7 +56,7 @@ func HandleListEnvironmentsForOrg(
 	// Extract org_id from arguments
 	orgID, ok := arguments["org_id"].(string)
 	if !ok || orgID == "" {
-		errResp := ErrorResponse{
+		errResp := tools.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
 			Message: "org_id is required",
 		}
@@ -75,12 +67,12 @@ func HandleListEnvironmentsForOrg(
 	log.Printf("Tool invoked: list_environments_for_org, org_id=%s", orgID)
 
 	// Create gRPC client with user's API key
-	client, err := grpcclient.NewEnvironmentClient(
+	client, err := resourcemanager.NewEnvironmentClient(
 		cfg.PlantonAPIsGRPCEndpoint,
 		cfg.PlantonAPIKey,
 	)
 	if err != nil {
-		errResp := ErrorResponse{
+		errResp := tools.ErrorResponse{
 			Error:   "CLIENT_ERROR",
 			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
 			OrgID:   orgID,
@@ -93,8 +85,8 @@ func HandleListEnvironmentsForOrg(
 	// Query environments
 	environments, err := client.FindByOrg(ctx, orgID)
 	if err != nil {
-		// Handle gRPC errors with user-friendly messages
-		return handleGRPCError(err, orgID), nil
+		// Use shared error handling from infrahub/tools
+		return tools.HandleGRPCError(err, orgID), nil
 	}
 
 	// Convert protobuf objects to JSON-serializable structs
@@ -117,7 +109,7 @@ func HandleListEnvironmentsForOrg(
 	// Return formatted JSON response
 	resultJSON, err := json.MarshalIndent(envList, "", "  ")
 	if err != nil {
-		errResp := ErrorResponse{
+		errResp := tools.ErrorResponse{
 			Error:   "INTERNAL_ERROR",
 			Message: fmt.Sprintf("Failed to marshal response: %v", err),
 			OrgID:   orgID,
@@ -129,56 +121,3 @@ func HandleListEnvironmentsForOrg(
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
 
-// handleGRPCError converts gRPC errors to user-friendly error responses.
-func handleGRPCError(err error, orgID string) *mcp.CallToolResult {
-	st, ok := status.FromError(err)
-	if !ok {
-		errResp := ErrorResponse{
-			Error:   "UNKNOWN_ERROR",
-			Message: fmt.Sprintf("An unexpected error occurred: %v", err),
-			OrgID:   orgID,
-		}
-		errJSON, _ := json.MarshalIndent(errResp, "", "  ")
-		return mcp.NewToolResultText(string(errJSON))
-	}
-
-	var errResp ErrorResponse
-	errResp.OrgID = orgID
-
-	switch st.Code() {
-	case codes.Unauthenticated:
-		errResp.Error = "UNAUTHENTICATED"
-		errResp.Message = "Authentication failed. Your session may have expired. Please refresh and try again."
-
-	case codes.PermissionDenied:
-		errResp.Error = "PERMISSION_DENIED"
-		errResp.Message = fmt.Sprintf(
-			"You don't have permission to view environments for organization '%s'. "+
-				"Please contact your organization administrator.",
-			orgID,
-		)
-
-	case codes.Unavailable:
-		errResp.Error = "UNAVAILABLE"
-		errResp.Message = "Planton Cloud APIs are currently unavailable. Please try again in a moment."
-
-	case codes.NotFound:
-		errResp.Error = "NOT_FOUND"
-		errResp.Message = fmt.Sprintf("Organization '%s' not found.", orgID)
-
-	default:
-		errResp.Error = st.Code().String()
-		errResp.Message = st.Message()
-		if errResp.Message == "" {
-			errResp.Message = "An unexpected error occurred."
-		}
-	}
-
-	log.Printf(
-		"Tool error: list_environments_for_org, org_id=%s, code=%s, message=%s",
-		orgID, errResp.Error, errResp.Message,
-	)
-
-	errJSON, _ := json.MarshalIndent(errResp, "", "  ")
-	return mcp.NewToolResultText(string(errJSON))
-}
