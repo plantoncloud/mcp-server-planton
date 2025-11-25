@@ -9,7 +9,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	grpcclient "github.com/plantoncloud-inc/mcp-server-planton/internal/grpc"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub"
 	apiresourcekind "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/apiresource/apiresourcekind"
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
 )
@@ -126,7 +126,7 @@ func HandleLookupCloudResourceByName(
 		orgID, envName, kindStr, name)
 
 	// Create gRPC client with user's API key
-	client, err := grpcclient.NewCloudResourceSearchClient(
+	client, err := infrahub.NewCloudResourceSearchClient(
 		cfg.PlantonAPIsGRPCEndpoint,
 		cfg.PlantonAPIKey,
 	)
@@ -144,7 +144,7 @@ func HandleLookupCloudResourceByName(
 	// Lookup cloud resource
 	record, err := client.LookupCloudResource(ctx, orgID, envName, kind, name)
 	if err != nil {
-		return handleGRPCError(err, orgID), nil
+		return HandleGRPCError(err, orgID), nil
 	}
 
 	// Convert to simplified structure

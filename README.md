@@ -283,24 +283,34 @@ make clean          # Remove build artifacts
 mcp-server-planton/
 ├── cmd/
 │   └── mcp-server-planton/
-│       └── main.go              # Entry point
+│       └── main.go                      # Entry point
 ├── internal/
+│   ├── common/
+│   │   └── auth/
+│   │       └── interceptor.go           # Shared auth interceptor
 │   ├── config/
-│   │   └── config.go            # Configuration management
-│   ├── grpc/
-│   │   ├── interceptor.go       # Auth interceptor
-│   │   └── client.go            # Environment gRPC client
+│   │   └── config.go                    # Configuration management
+│   ├── infrahub/
+│   │   ├── client.go                    # Cloud resource gRPC clients
+│   │   └── tools/
+│   │       ├── errors.go                # Shared error handling
+│   │       ├── get.go                   # get_cloud_resource_by_id tool
+│   │       ├── kinds.go                 # list_cloud_resource_kinds tool
+│   │       ├── lookup.go                # lookup_cloud_resource_by_name tool
+│   │       └── search.go                # search_cloud_resources tool
+│   ├── resourcemanager/
+│   │   ├── client.go                    # Environment gRPC client
+│   │   └── tools/
+│   │       └── environment.go           # list_environments_for_org tool
 │   └── mcp/
-│       ├── server.go            # MCP server setup
-│       └── tools/
-│           └── environment.go   # Environment query tools
+│       └── server.go                    # MCP server setup and tool registration
 ├── .github/
 │   └── workflows/
-│       └── release.yml          # Release automation
-├── .goreleaser.yaml             # GoReleaser config
-├── Dockerfile                   # Multi-stage Docker build
-├── Makefile                     # Build commands
-└── README.md                    # This file
+│       └── release.yml                  # Release automation
+├── .goreleaser.yaml                     # GoReleaser config
+├── Dockerfile                           # Multi-stage Docker build
+├── Makefile                             # Build commands
+└── README.md                            # This file
 ```
 
 ## Distribution

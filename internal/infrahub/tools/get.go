@@ -8,7 +8,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	grpcclient "github.com/plantoncloud-inc/mcp-server-planton/internal/grpc"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -59,7 +59,7 @@ func HandleGetCloudResourceById(
 	log.Printf("Tool invoked: get_cloud_resource_by_id, resource_id=%s", resourceID)
 
 	// Create gRPC client with user's API key
-	client, err := grpcclient.NewCloudResourceQueryClient(
+	client, err := infrahub.NewCloudResourceQueryClient(
 		cfg.PlantonAPIsGRPCEndpoint,
 		cfg.PlantonAPIKey,
 	)
@@ -76,7 +76,7 @@ func HandleGetCloudResourceById(
 	// Get cloud resource by ID
 	cloudResource, err := client.GetById(ctx, resourceID)
 	if err != nil {
-		return handleGRPCError(err, ""), nil
+		return HandleGRPCError(err, ""), nil
 	}
 
 	log.Printf("Tool completed: get_cloud_resource_by_id, retrieved resource: %s", resourceID)

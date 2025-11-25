@@ -8,7 +8,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	grpcclient "github.com/plantoncloud-inc/mcp-server-planton/internal/grpc"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub"
 	apiresourcekind "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/apiresource/apiresourcekind"
 	cloudresourcesearch "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/search/v1/infrahub/cloudresource"
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
@@ -125,7 +125,7 @@ func HandleSearchCloudResources(
 		orgID, envNames, kinds, searchText)
 
 	// Create gRPC client with user's API key
-	client, err := grpcclient.NewCloudResourceSearchClient(
+	client, err := infrahub.NewCloudResourceSearchClient(
 		cfg.PlantonAPIsGRPCEndpoint,
 		cfg.PlantonAPIKey,
 	)
@@ -143,7 +143,7 @@ func HandleSearchCloudResources(
 	// Query cloud resources
 	resp, err := client.GetCloudResourcesCanvasView(ctx, orgID, envNames, kinds, searchText)
 	if err != nil {
-		return handleGRPCError(err, orgID), nil
+		return HandleGRPCError(err, orgID), nil
 	}
 
 	// Flatten the nested response structure
