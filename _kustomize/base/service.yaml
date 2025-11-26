@@ -49,8 +49,6 @@ spec:
   availability:
     minReplicas: 2
     horizontalPodAutoscaling:
-      isEnabled: true
-      maxReplicas: 10
-      targetCpuUtilizationPercentage: 70
+      isEnabled: false
   version: latest
 
