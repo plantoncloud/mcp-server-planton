@@ -99,24 +99,11 @@ export PLANTON_MCP_HTTP_AUTH_ENABLED="true"  # or "false"
 **Default:** `true`
 
 **When to use:**
-- Set to `true` in production for security
+- Set to `true` in production for security (recommended)
 - Set to `false` for local testing or when network-level security is sufficient
 
-#### PLANTON_MCP_HTTP_BEARER_TOKEN
-
-Bearer token for HTTP authentication.
-
-```bash
-export PLANTON_MCP_HTTP_BEARER_TOKEN="your-secure-random-token"
-```
-
-**Default:** None (must be provided if auth is enabled)
-
-**Required when:**
-- `PLANTON_MCP_HTTP_AUTH_ENABLED` is `true`
-- `PLANTON_MCP_TRANSPORT` is `http` or `both`
-
-**Security note:** Use a strong, randomly generated token (32+ characters). This token controls access to your MCP server instance.
+**Authentication mechanism:**
+When enabled, your `PLANTON_API_KEY` is used as the bearer token for HTTP authentication. This simplifies configuration by using a single credential for both MCP server access and Planton Cloud API authorization.
 
 ## Configuration Loading
 
@@ -131,7 +118,6 @@ type Config struct {
     Transport               TransportMode
     HTTPPort                string
     HTTPAuthEnabled         bool
-    HTTPBearerToken         string
 }
 ```
 
@@ -181,8 +167,7 @@ PLANTON_MCP_TRANSPORT=stdio  # or 'http', 'both'
 
 # Optional: HTTP transport settings (when using 'http' or 'both')
 PLANTON_MCP_HTTP_PORT=8080
-PLANTON_MCP_HTTP_AUTH_ENABLED=true  # or 'false'
-PLANTON_MCP_HTTP_BEARER_TOKEN=your-secure-random-token  # required if auth enabled
+PLANTON_MCP_HTTP_AUTH_ENABLED=true  # or 'false' (uses PLANTON_API_KEY as bearer token)
 ```
 
 **Note:** The Go server doesn't automatically load `.env` files. You'll need to source them manually or use a tool like `direnv`:

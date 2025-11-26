@@ -16,7 +16,7 @@ import (
 type HTTPServerOptions struct {
 	Port            string
 	AuthEnabled     bool
-	BearerToken     string
+	BearerToken     string // PLANTON_API_KEY used as bearer token for HTTP authentication
 	BaseURL         string
 	ShutdownTimeout time.Duration
 }
@@ -236,12 +236,13 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// DefaultHTTPOptions returns default HTTP server options
+// DefaultHTTPOptions returns default HTTP server options.
+// When authentication is enabled, the PLANTON_API_KEY is used as the bearer token.
 func DefaultHTTPOptions(cfg *config.Config) HTTPServerOptions {
 	return HTTPServerOptions{
 		Port:            cfg.HTTPPort,
 		AuthEnabled:     cfg.HTTPAuthEnabled,
-		BearerToken:     cfg.HTTPBearerToken,
+		BearerToken:     cfg.PlantonAPIKey, // Use API key as bearer token
 		BaseURL:         fmt.Sprintf("http://localhost:%s", cfg.HTTPPort),
 		ShutdownTimeout: 10 * time.Second,
 	}
