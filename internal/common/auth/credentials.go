@@ -53,8 +53,9 @@ const apiKeyContextKey contextKey = "planton-api-key"
 // to gRPC clients.
 //
 // Example:
-//   ctx := auth.WithAPIKey(r.Context(), "user-api-key")
-//   client, err := NewClientFromContext(ctx, endpoint)
+//
+//	ctx := auth.WithAPIKey(r.Context(), "user-api-key")
+//	client, err := NewClientFromContext(ctx, endpoint)
 func WithAPIKey(ctx context.Context, apiKey string) context.Context {
 	return context.WithValue(ctx, apiKeyContextKey, apiKey)
 }
@@ -66,10 +67,11 @@ func WithAPIKey(ctx context.Context, apiKey string) context.Context {
 // with Planton Cloud APIs, enabling proper Fine-Grained Authorization per user.
 //
 // Example:
-//   apiKey, err := auth.GetAPIKey(ctx)
-//   if err != nil {
-//       return nil, fmt.Errorf("no API key in context: %w", err)
-//   }
+//
+//	apiKey, err := auth.GetAPIKey(ctx)
+//	if err != nil {
+//	    return nil, fmt.Errorf("no API key in context: %w", err)
+//	}
 func GetAPIKey(ctx context.Context) (string, error) {
 	apiKey, ok := ctx.Value(apiKeyContextKey).(string)
 	if !ok || apiKey == "" {
