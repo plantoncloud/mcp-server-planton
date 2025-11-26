@@ -10,6 +10,7 @@ import (
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/clients"
+	crinternal "github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -84,7 +85,7 @@ func HandleGetCloudResourceById(
 
 	// Unwrap to get the specific cloud resource object
 	// This extracts the actual resource (e.g., AwsEksCluster, GcpGkeCluster) from the wrapper
-	unwrappedResource, err := UnwrapCloudResource(cloudResource)
+	unwrappedResource, err := crinternal.UnwrapCloudResource(cloudResource)
 	if err != nil {
 		errResp := errors.ErrorResponse{
 			Error:   "INTERNAL_ERROR",

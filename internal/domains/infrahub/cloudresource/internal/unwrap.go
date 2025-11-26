@@ -1,4 +1,4 @@
-package cloudresource
+package internal
 
 import (
 	cloudresourcev1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/infrahub/cloudresource/v1"

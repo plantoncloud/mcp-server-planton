@@ -11,12 +11,21 @@ import (
 
 // RegisterTools registers all cloud resource tools with the MCP server.
 func RegisterTools(s *server.MCPServer, cfg *config.Config) {
+	// Query tools
 	registerGetTool(s, cfg)
 	registerSearchTool(s, cfg)
 	registerLookupTool(s, cfg)
 	registerListKindsTool(s, cfg)
+	
+	// Schema discovery
+	registerGetSchemaTool(s, cfg)
+	
+	// Command tools (mutations)
+	registerCreateTool(s, cfg)
+	registerUpdateTool(s, cfg)
+	registerDeleteTool(s, cfg)
 
-	log.Println("Registered 4 cloud resource tools")
+	log.Println("Registered 8 cloud resource tools")
 }
 
 // registerGetTool registers the get_cloud_resource_by_id tool.
@@ -63,7 +72,47 @@ func registerListKindsTool(s *server.MCPServer, cfg *config.Config) {
 	log.Println("  - list_cloud_resource_kinds")
 }
 
+// registerGetSchemaTool registers the get_cloud_resource_schema tool.
+func registerGetSchemaTool(s *server.MCPServer, cfg *config.Config) {
+	s.AddTool(
+		CreateGetCloudResourceSchemaTool(),
+		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
+			return HandleGetCloudResourceSchema(context.Background(), arguments, cfg)
+		},
+	)
+	log.Println("  - get_cloud_resource_schema")
+}
 
+// registerCreateTool registers the create_cloud_resource tool.
+func registerCreateTool(s *server.MCPServer, cfg *config.Config) {
+	s.AddTool(
+		CreateCreateCloudResourceTool(),
+		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
+			return HandleCreateCloudResource(context.Background(), arguments, cfg)
+		},
+	)
+	log.Println("  - create_cloud_resource")
+}
 
+// registerUpdateTool registers the update_cloud_resource tool.
+func registerUpdateTool(s *server.MCPServer, cfg *config.Config) {
+	s.AddTool(
+		CreateUpdateCloudResourceTool(),
+		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
+			return HandleUpdateCloudResource(context.Background(), arguments, cfg)
+		},
+	)
+	log.Println("  - update_cloud_resource")
+}
 
+// registerDeleteTool registers the delete_cloud_resource tool.
+func registerDeleteTool(s *server.MCPServer, cfg *config.Config) {
+	s.AddTool(
+		CreateDeleteCloudResourceTool(),
+		func(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
+			return HandleDeleteCloudResource(context.Background(), arguments, cfg)
+		},
+	)
+	log.Println("  - delete_cloud_resource")
+}
 
