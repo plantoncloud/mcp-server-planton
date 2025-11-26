@@ -80,8 +80,8 @@ clean:
 	@rm -rf dist/
 	@echo "Clean complete"
 
-## release: Create and push a release version (usage: make release version=v1.0.0)
-release:
+## release: Create and push a release version (usage: make release version=v1.0.0 [force=true])
+release: build
 ifndef version
 	@echo "Error: version is required. Usage: make release version=v1.0.0"
 	@exit 1
@@ -90,6 +90,28 @@ endif
 	@if ! echo "$(version)" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+'; then \
 		echo "Error: version must follow semantic versioning (e.g., v1.0.0, v2.1.3)"; \
 		exit 1; \
+	fi
+	@# Check if tag exists locally
+	@if git rev-parse $(version) >/dev/null 2>&1; then \
+		if [ "$(force)" = "true" ]; then \
+			echo "Tag $(version) exists locally. Deleting due to force=true..."; \
+			git tag -d $(version); \
+		else \
+			echo "Error: Tag $(version) already exists locally."; \
+			echo "Use 'make release version=$(version) force=true' to force delete and recreate."; \
+			exit 1; \
+		fi \
+	fi
+	@# Check if tag exists remotely
+	@if git ls-remote --tags origin | grep -q "refs/tags/$(version)$$"; then \
+		if [ "$(force)" = "true" ]; then \
+			echo "Tag $(version) exists remotely. Deleting due to force=true..."; \
+			git push origin :refs/tags/$(version); \
+		else \
+			echo "Error: Tag $(version) already exists remotely."; \
+			echo "Use 'make release version=$(version) force=true' to force delete and recreate."; \
+			exit 1; \
+		fi \
 	fi
 	@git tag -a $(version) -m "Release $(version)"
 	@git push origin $(version)

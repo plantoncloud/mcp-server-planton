@@ -1,0 +1,56 @@
+apiVersion: kubernetes.project-planton.org/v1
+kind: KubernetesDeployment
+metadata:
+  name: mcp-server-planton
+  org: planton-cloud
+  labels:
+    pulumi.project-planton.org/organization: planton-cloud
+    pulumi.project-planton.org/project: planton-cloud
+spec:
+  container:
+    app:
+      image:
+        repo: ghcr.io/plantoncloud-inc/mcp-server-planton
+        tag: latest
+      env:
+        variables:
+          PORT: "8080"
+          LOG_LEVEL: info
+          PLANTON_MCP_TRANSPORT: http
+          PLANTON_MCP_HTTP_PORT: "8080"
+          PLANTON_MCP_HTTP_AUTH_ENABLED: "true"
+          PLANTON_CLOUD_ENVIRONMENT: live
+      resources:
+        limits:
+          cpu: 500m
+          memory: 512Mi
+        requests:
+          cpu: 50m
+          memory: 128Mi
+      ports:
+        - name: http-mcp
+          appProtocol: http
+          networkProtocol: TCP
+          servicePort: 80
+          containerPort: 8080
+          isIngressPort: true
+      readinessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        initialDelaySeconds: 5
+        periodSeconds: 10
+      livenessProbe:
+        httpGet:
+          path: /health
+          port: 8080
+        initialDelaySeconds: 15
+        periodSeconds: 30
+  availability:
+    minReplicas: 2
+    horizontalPodAutoscaling:
+      isEnabled: true
+      maxReplicas: 10
+      targetCpuUtilizationPercentage: 70
+  version: latest
+

@@ -1,0 +1,30 @@
+apiVersion: kubernetes.project-planton.org/v1
+kind: KubernetesDeployment
+metadata:
+  name: mcp-server-planton
+  env: app-prod
+  labels:
+    pulumi.project-planton.org/stack.name: app-prod.KubernetesDeployment.mcp-server-planton
+spec:
+  namespace:
+    value: service-app-prod-mcp-server-planton
+  container:
+    app:
+      resources:
+        limits:
+          cpu: "1"
+          memory: 1Gi
+        requests:
+          cpu: 100m
+          memory: 256Mi
+  availability:
+    deploymentStrategy:
+      maxUnavailable: "0"
+      maxSurge: "1"
+    podDisruptionBudget:
+      enabled: true
+      minAvailable: "1"
+  ingress:
+    enabled: true
+    hostname: mcp.planton.ai
+
