@@ -23,13 +23,13 @@ Use this before creating a resource to understand what information needs to be c
 
 Common cloud_resource_kind values:
 - Kubernetes: kubernetes_deployment, kubernetes_postgres, kubernetes_redis, kubernetes_mongodb
-- AWS: aws_eks_cluster, aws_rds, aws_lambda, aws_s3_bucket, aws_vpc
+- AWS: aws_eks_cluster, aws_rds_instance, aws_rds_cluster, aws_lambda, aws_s3_bucket, aws_vpc
 - GCP: gcp_gke_cluster, gcp_cloud_sql, gcp_cloud_function, gcp_vpc
 
 The tool accepts multiple formats and normalizes them:
-- "aws_rds" (exact enum value)
-- "AwsRds" (PascalCase)
-- "AWS RDS" (natural language)
+- "aws_rds_instance" (snake_case)
+- "AwsRdsInstance" (PascalCase)
+- "AWS RDS Instance" (natural language)
 
 For the complete list of 150+ resource types, use 'list_cloud_resource_kinds' tool.`,
 		InputSchema: mcp.ToolInputSchema{
@@ -37,7 +37,7 @@ For the complete list of 150+ resource types, use 'list_cloud_resource_kinds' to
 			Properties: map[string]interface{}{
 				"cloud_resource_kind": map[string]interface{}{
 					"type":        "string",
-					"description": "Cloud resource kind enum value (e.g., aws_rds, gcp_gke_cluster)",
+					"description": "Cloud resource kind enum value (e.g., aws_rds_instance, gcp_gke_cluster)",
 				},
 			},
 			Required: []string{"cloud_resource_kind"},

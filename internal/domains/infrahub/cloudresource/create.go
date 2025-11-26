@@ -38,14 +38,14 @@ ALTERNATIVE WORKFLOW (also works):
 
 Common cloud_resource_kind values:
 - kubernetes_deployment, kubernetes_postgres, kubernetes_redis
-- aws_eks_cluster, aws_rds, aws_lambda, aws_s3_bucket  
+- aws_eks_cluster, aws_rds_instance, aws_rds_cluster, aws_lambda, aws_s3_bucket  
 - gcp_gke_cluster, gcp_cloud_sql, gcp_cloud_function`,
 		InputSchema: mcp.ToolInputSchema{
 			Type: "object",
 			Properties: map[string]interface{}{
 				"cloud_resource_kind": map[string]interface{}{
 					"type":        "string",
-					"description": "Resource type enum (e.g., aws_rds, kubernetes_postgres)",
+					"description": "Resource type enum (e.g., aws_rds_instance, kubernetes_postgres)",
 				},
 				"org_id": map[string]interface{}{
 					"type":        "string",

@@ -35,7 +35,7 @@ Implemented a **hybrid self-sufficient tool architecture** where:
 Agent Workflow (Optimal):
   User: "Create an AWS RDS database"
     ↓
-  1. Agent calls: get_cloud_resource_schema(kind="aws_rds")
+  1. Agent calls: get_cloud_resource_schema(kind="aws_rds_instance")
     ↓
   2. Agent reads schema: {engine: string (required), instance_class: string (required), ...}
     ↓
@@ -43,7 +43,7 @@ Agent Workflow (Optimal):
     ↓
   4. Agent asks user: "What instance class?" → "db.t3.micro"
     ↓
-  5. Agent calls: create_cloud_resource(kind="aws_rds", spec={...})
+  5. Agent calls: create_cloud_resource(kind="aws_rds_instance", spec={...})
     ↓
   ✓ Resource created successfully
 
@@ -51,7 +51,7 @@ Agent Workflow (Optimal):
 Agent Workflow (Fallback - still works):
   User: "Create an AWS RDS database"
     ↓
-  1. Agent calls: create_cloud_resource(kind="aws_rds", spec={})
+  1. Agent calls: create_cloud_resource(kind="aws_rds_instance", spec={})
     ↓
   2. Tool returns: VALIDATION_FAILED with field schemas
     ↓
@@ -59,7 +59,7 @@ Agent Workflow (Fallback - still works):
     ↓
   4. Agent asks user for missing fields
     ↓
-  5. Agent retries: create_cloud_resource(kind="aws_rds", spec={engine: "postgres", ...})
+  5. Agent retries: create_cloud_resource(kind="aws_rds_instance", spec={engine: "postgres", ...})
     ↓
   ✓ Resource created successfully
 ```
@@ -101,10 +101,10 @@ Returns:
 Handles multiple CloudResourceKind format variations:
 
 ```go
-// All these normalize to "aws_rds":
-NormalizeCloudResourceKind("aws_rds")          // exact enum
-NormalizeCloudResourceKind("AwsRds")           // PascalCase
-NormalizeCloudResourceKind("AWS RDS")          // natural language
+// All these normalize to "aws_rds_instance":
+NormalizeCloudResourceKind("aws_rds_instance")      // exact snake_case
+NormalizeCloudResourceKind("AwsRdsInstance")        // PascalCase
+NormalizeCloudResourceKind("AWS RDS Instance")      // natural language
 NormalizeCloudResourceKind("aws-rds")          // hyphenated
 ```
 
@@ -250,9 +250,9 @@ Benefits:
 - Provides helpful suggestions via fuzzy matching
 
 **Supported Formats**:
-- `aws_rds` - exact enum value (snake_case)
-- `AwsRds` - PascalCase
-- `AWS RDS` - natural language with spaces
+- `aws_rds_instance` - exact enum value (snake_case)
+- `AwsRdsInstance` - PascalCase
+- `AWS RDS Instance` - natural language with spaces
 - `aws-rds` - hyphenated
 
 ### 4. Rich Error Responses with Embedded Schemas
@@ -323,7 +323,7 @@ Benefits:
 **Build Verification**: ✅ `go build` succeeded without errors
 
 **Manual Testing Required** (not automated):
-- Schema extraction for common resources (kubernetes_deployment, aws_rds, gcp_gke_cluster)
+- Schema extraction for common resources (kubernetes_deployment, aws_rds_instance, gcp_gke_cluster)
 - Kind normalization with various formats
 - Create resource with complete spec
 - Create resource with incomplete spec (validation error path)

@@ -11,10 +11,10 @@ import (
 // NormalizeCloudResourceKind converts various input formats to the canonical CloudResourceKind enum value.
 //
 // Accepts:
-//   - Exact enum value: "aws_rds", "kubernetes_deployment"
-//   - PascalCase: "AwsRds", "KubernetesDeployment"
-//   - Natural language with spaces: "AWS RDS", "Kubernetes Deployment"
-//   - Hyphenated: "aws-rds", "kubernetes-deployment"
+//   - snake_case: "aws_rds_instance", "kubernetes_deployment"
+//   - PascalCase: "AwsRdsInstance", "KubernetesDeployment"
+//   - Natural language with spaces: "AWS RDS Instance", "Kubernetes Deployment"
+//   - Hyphenated: "aws-rds-instance", "kubernetes-deployment"
 //
 // Returns the CloudResourceKind enum value or error if not found.
 func NormalizeCloudResourceKind(input string) (cloudresourcekind.CloudResourceKind, error) {
@@ -34,6 +34,14 @@ func NormalizeCloudResourceKind(input string) (cloudresourcekind.CloudResourceKi
 
 	// Try normalized lookup
 	if val, ok := cloudresourcekind.CloudResourceKind_value[normalized]; ok {
+		return cloudresourcekind.CloudResourceKind(val), nil
+	}
+
+	// Try converting snake_case to PascalCase for enum lookup
+	// This handles cases where list_cloud_resource_kinds returns "aws_rds_instance"
+	// and we need to look up "AwsRdsInstance" in the enum
+	pascalCase := SnakeToPascalCase(normalized)
+	if val, ok := cloudresourcekind.CloudResourceKind_value[pascalCase]; ok {
 		return cloudresourcekind.CloudResourceKind(val), nil
 	}
 
@@ -171,7 +179,8 @@ func GetPopularKindsByCategory() map[string][]string {
 		},
 		"aws": {
 			"aws_eks_cluster",
-			"aws_rds",
+			"aws_rds_instance",
+			"aws_rds_cluster",
 			"aws_lambda",
 			"aws_s3_bucket",
 			"aws_vpc",
@@ -199,6 +208,26 @@ func PascalToSnakeCase(s string) string {
 			result.WriteRune('_')
 		}
 		result.WriteRune(unicode.ToLower(r))
+	}
+	return result.String()
+}
+
+// SnakeToPascalCase converts snake_case to PascalCase
+// Examples: "aws_rds_instance" → "AwsRdsInstance", "gcp_gke_cluster" → "GcpGkeCluster"
+func SnakeToPascalCase(s string) string {
+	var result strings.Builder
+	capitalizeNext := true
+	for _, r := range s {
+		if r == '_' {
+			capitalizeNext = true
+			continue
+		}
+		if capitalizeNext {
+			result.WriteRune(unicode.ToUpper(r))
+			capitalizeNext = false
+		} else {
+			result.WriteRune(unicode.ToLower(r))
+		}
 	}
 	return result.String()
 }
