@@ -8,6 +8,15 @@ import (
 // Environment represents the Planton Cloud environment
 type Environment string
 
+// TransportMode represents the MCP server transport mode
+type TransportMode string
+
+const (
+	TransportStdio TransportMode = "stdio"
+	TransportHTTP  TransportMode = "http"
+	TransportBoth  TransportMode = "both"
+)
+
 const (
 	// EnvironmentEnvVar is the environment variable to set the target environment
 	EnvironmentEnvVar = "PLANTON_CLOUD_ENVIRONMENT"
@@ -18,6 +27,18 @@ const (
 	// APIKeyEnvVar is the environment variable for the API key
 	APIKeyEnvVar = "PLANTON_API_KEY"
 
+	// TransportEnvVar specifies the transport mode (stdio, http, or both)
+	TransportEnvVar = "PLANTON_MCP_TRANSPORT"
+
+	// HTTPPortEnvVar specifies the HTTP server port
+	HTTPPortEnvVar = "PLANTON_MCP_HTTP_PORT"
+
+	// HTTPAuthEnabledEnvVar enables bearer token authentication for HTTP transport
+	HTTPAuthEnabledEnvVar = "PLANTON_MCP_HTTP_AUTH_ENABLED"
+
+	// HTTPBearerTokenEnvVar specifies the bearer token for HTTP authentication
+	HTTPBearerTokenEnvVar = "PLANTON_MCP_HTTP_BEARER_TOKEN"
+
 	// Environment values
 	EnvironmentLive  Environment = "live"
 	EnvironmentTest  Environment = "test"
@@ -27,6 +48,10 @@ const (
 	LocalEndpoint = "localhost:8080"
 	TestEndpoint  = "api.test.planton.cloud:443"
 	LiveEndpoint  = "api.live.planton.ai:443"
+
+	// Default values
+	DefaultTransport = "stdio"
+	DefaultHTTPPort  = "8080"
 )
 
 // Config holds the MCP server configuration loaded from environment variables.
@@ -42,6 +67,19 @@ type Config struct {
 	// PlantonAPIsGRPCEndpoint is the gRPC endpoint for Planton Cloud APIs.
 	// Defaults based on environment or can be overridden.
 	PlantonAPIsGRPCEndpoint string
+
+	// Transport specifies the MCP server transport mode (stdio, http, or both)
+	Transport TransportMode
+
+	// HTTPPort specifies the port for HTTP transport
+	HTTPPort string
+
+	// HTTPAuthEnabled determines if bearer token authentication is required for HTTP
+	HTTPAuthEnabled bool
+
+	// HTTPBearerToken is the bearer token for HTTP authentication
+	// Required when HTTPAuthEnabled is true
+	HTTPBearerToken string
 }
 
 // LoadFromEnv loads configuration from environment variables.
@@ -53,8 +91,12 @@ type Config struct {
 //   - PLANTON_APIS_GRPC_ENDPOINT: Override endpoint (takes precedence)
 //   - PLANTON_CLOUD_ENVIRONMENT: Target environment (live, test, local)
 //     Defaults to "live" which uses api.live.planton.cloud:443
+//   - PLANTON_MCP_TRANSPORT: Transport mode (stdio, http, both) - defaults to "stdio"
+//   - PLANTON_MCP_HTTP_PORT: HTTP server port - defaults to "8080"
+//   - PLANTON_MCP_HTTP_AUTH_ENABLED: Enable bearer token auth - defaults to "true"
+//   - PLANTON_MCP_HTTP_BEARER_TOKEN: Bearer token (required if HTTP auth enabled and transport is http/both)
 //
-// Returns an error if PLANTON_API_KEY is missing.
+// Returns an error if PLANTON_API_KEY is missing or if HTTP bearer token is required but not provided.
 func LoadFromEnv() (*Config, error) {
 	apiKey := os.Getenv(APIKeyEnvVar)
 	if apiKey == "" {
@@ -66,10 +108,26 @@ func LoadFromEnv() (*Config, error) {
 	}
 
 	endpoint := getEndpoint()
+	transport := getTransport()
+	httpPort := getHTTPPort()
+	httpAuthEnabled := getHTTPAuthEnabled()
+	httpBearerToken := os.Getenv(HTTPBearerTokenEnvVar)
+
+	// Validate bearer token requirement
+	if (transport == TransportHTTP || transport == TransportBoth) && httpAuthEnabled && httpBearerToken == "" {
+		return nil, fmt.Errorf(
+			"%s environment variable required when HTTP transport is enabled with authentication",
+			HTTPBearerTokenEnvVar,
+		)
+	}
 
 	return &Config{
 		PlantonAPIKey:           apiKey,
 		PlantonAPIsGRPCEndpoint: endpoint,
+		Transport:               transport,
+		HTTPPort:                httpPort,
+		HTTPAuthEnabled:         httpAuthEnabled,
+		HTTPBearerToken:         httpBearerToken,
 	}, nil
 }
 
@@ -112,4 +170,38 @@ func getEnvironment() Environment {
 	default:
 		return EnvironmentLive
 	}
+}
+
+// getTransport returns the configured transport mode, defaulting to "stdio"
+func getTransport() TransportMode {
+	transportStr := os.Getenv(TransportEnvVar)
+	if transportStr == "" {
+		return TransportStdio
+	}
+
+	transport := TransportMode(transportStr)
+	switch transport {
+	case TransportStdio, TransportHTTP, TransportBoth:
+		return transport
+	default:
+		return TransportStdio
+	}
+}
+
+// getHTTPPort returns the configured HTTP port, defaulting to "8080"
+func getHTTPPort() string {
+	port := os.Getenv(HTTPPortEnvVar)
+	if port == "" {
+		return DefaultHTTPPort
+	}
+	return port
+}
+
+// getHTTPAuthEnabled returns whether HTTP authentication is enabled, defaulting to true
+func getHTTPAuthEnabled() bool {
+	authStr := os.Getenv(HTTPAuthEnabledEnvVar)
+	if authStr == "" {
+		return true // Default to enabled for security
+	}
+	return authStr == "true" || authStr == "1"
 }

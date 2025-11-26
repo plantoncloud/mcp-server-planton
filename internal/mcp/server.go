@@ -31,7 +31,8 @@ func NewServer(cfg *config.Config) *Server {
 	// Register tool handlers
 	s.registerTools()
 
-	log.Println("MCP server initialized with stdio transport")
+	log.Println("MCP server initialized")
+	log.Printf("Transport mode: %s", cfg.Transport)
 	log.Printf("Planton APIs endpoint: %s", cfg.PlantonAPIsGRPCEndpoint)
 	log.Println("User API key loaded from environment")
 

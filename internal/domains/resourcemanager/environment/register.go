@@ -28,3 +28,8 @@ func registerListTool(s *server.MCPServer, cfg *config.Config) {
 	)
 	log.Println("  - list_environments_for_org")
 }
+
+
+
+
+

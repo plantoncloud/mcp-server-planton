@@ -142,3 +142,5 @@ export PLANTON_CLOUD_ENVIRONMENT="live"
 This change addresses the user's concern about endpoint configuration and brings MCP server configuration in line with CLI patterns, making it easier for users already familiar with the CLI to adopt the MCP server.
 
 
+
+
