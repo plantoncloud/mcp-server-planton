@@ -707,3 +707,5 @@ spec:
 4. Add health check and metrics endpoints (week 2)
 5. Create Cloudflare Workers deployment template (week 3)
 
+
+

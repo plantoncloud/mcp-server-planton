@@ -280,3 +280,5 @@ This fix completes the agent-friendly schema discovery system by ensuring the da
 **Affected Components**: MCP server, cloud resource discovery, schema extraction  
 **Resources Fixed**: All 150+ cloud resource kinds
 
+
+

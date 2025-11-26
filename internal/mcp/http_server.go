@@ -77,9 +77,9 @@ func (s *Server) ServeHTTP(opts HTTPServerOptions) error {
 		proxyHandler = createProxy(sseServerAddr)
 	}
 
-	// Register proxied endpoints
-	mux.HandleFunc("/sse", proxyHandler)
-	mux.HandleFunc("/message", proxyHandler)
+	// Register catch-all handler that rewrites paths to internal SSE server
+	// This allows users to configure just "http://localhost:8080/" without knowing about /sse
+	mux.HandleFunc("/", proxyHandler)
 
 	log.Println("MCP endpoints available:")
 	log.Println("  - GET  /health   - Health check endpoint")
@@ -91,10 +91,16 @@ func (s *Server) ServeHTTP(opts HTTPServerOptions) error {
 		log.Println("  - POST /message  - Message endpoint")
 	}
 
+	// Create logging middleware
+	loggingHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("Request: %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+		mux.ServeHTTP(w, r)
+	})
+
 	// Create and start HTTP server
 	httpServer := &http.Server{
 		Addr:              ":" + opts.Port,
-		Handler:           mux,
+		Handler:           loggingHandler,
 		ReadHeaderTimeout: 10 * time.Second,
 		WriteTimeout:      0, // No timeout for SSE connections
 		IdleTimeout:       120 * time.Second,
@@ -149,9 +155,19 @@ func createAuthenticatedProxy(targetAddr, expectedToken string) http.HandlerFunc
 
 // proxyRequest handles the actual proxying of requests to the internal SSE server.
 // It properly handles SSE streaming with flushing for real-time updates.
+// It also rewrites internal port references to external port in SSE responses.
 func proxyRequest(w http.ResponseWriter, r *http.Request, targetAddr string) {
+	// Rewrite path for internal SSE server
+	// Users configure http://localhost:8080/ but internal server expects /sse
+	internalPath := r.URL.Path
+
+	// Map root path and common MCP client paths to /sse
+	if internalPath == "/" || internalPath == "" {
+		internalPath = "/sse"
+	}
+
 	// Create proxy request to internal SSE server
-	proxyURL := "http://" + targetAddr + r.URL.Path
+	proxyURL := "http://" + targetAddr + internalPath
 	if r.URL.RawQuery != "" {
 		proxyURL += "?" + r.URL.RawQuery
 	}
@@ -195,13 +211,27 @@ func proxyRequest(w http.ResponseWriter, r *http.Request, targetAddr string) {
 	w.WriteHeader(resp.StatusCode)
 
 	// For SSE connections, we need to flush data as it arrives
+	// and rewrite internal port references to external port
 	if flusher, ok := w.(http.Flusher); ok {
 		// Stream response body
 		buf := make([]byte, 4096)
 		for {
 			n, err := resp.Body.Read(buf)
 			if n > 0 {
-				if _, writeErr := w.Write(buf[:n]); writeErr != nil {
+				// Rewrite internal port (18080) to external port (from Host header)
+				data := buf[:n]
+				dataStr := string(data)
+				// Replace localhost:18080 with the external host
+				if strings.Contains(dataStr, "localhost:18080") {
+					host := r.Host
+					if host == "" {
+						host = "localhost:8080"
+					}
+					dataStr = strings.ReplaceAll(dataStr, "localhost:18080", host)
+					data = []byte(dataStr)
+				}
+
+				if _, writeErr := w.Write(data); writeErr != nil {
 					return
 				}
 				flusher.Flush()
