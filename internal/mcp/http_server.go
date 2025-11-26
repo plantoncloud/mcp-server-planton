@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/mark3labs/mcp-go/server"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
 )
 
@@ -16,7 +17,6 @@ import (
 type HTTPServerOptions struct {
 	Port            string
 	AuthEnabled     bool
-	BearerToken     string // PLANTON_API_KEY used as bearer token for HTTP authentication
 	BaseURL         string
 	ShutdownTimeout time.Duration
 }
@@ -34,14 +34,10 @@ func (s *Server) ServeHTTP(opts HTTPServerOptions) error {
 	log.Printf("Base URL: %s", opts.BaseURL)
 
 	// Determine if authentication is enabled
-	authEnabled := opts.AuthEnabled && opts.BearerToken != ""
-	if opts.AuthEnabled && opts.BearerToken == "" {
-		log.Println("WARNING: Auth enabled but no bearer token configured, disabling authentication")
-		authEnabled = false
-	}
+	authEnabled := opts.AuthEnabled
 
 	if authEnabled {
-		log.Println("Bearer token authentication: ENABLED")
+		log.Println("Bearer token authentication: ENABLED (per-user API keys from Authorization header)")
 	} else {
 		log.Println("Bearer token authentication: DISABLED (not recommended for production)")
 	}
@@ -71,8 +67,8 @@ func (s *Server) ServeHTTP(opts HTTPServerOptions) error {
 	// Create proxy handler with optional authentication
 	var proxyHandler http.HandlerFunc
 	if authEnabled {
-		proxyHandler = createAuthenticatedProxy(sseServerAddr, opts.BearerToken)
-		log.Println("SSE endpoints protected with bearer token authentication")
+		proxyHandler = createAuthenticatedProxy(sseServerAddr)
+		log.Println("SSE endpoints protected with per-user bearer token authentication")
 	} else {
 		proxyHandler = createProxy(sseServerAddr)
 	}
@@ -119,15 +115,17 @@ func createProxy(targetAddr string) http.HandlerFunc {
 }
 
 // createAuthenticatedProxy creates a reverse proxy handler with bearer token authentication.
-// The proxy forwards authenticated requests to the internal SSE server.
-func createAuthenticatedProxy(targetAddr, expectedToken string) http.HandlerFunc {
+// The proxy extracts the user's API key from the Authorization header and stores it in the
+// request context for use by downstream gRPC clients. This enables per-user authentication
+// with proper Fine-Grained Authorization.
+func createAuthenticatedProxy(targetAddr string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Validate bearer token
+		// Extract bearer token from Authorization header
 		authHeader := r.Header.Get("Authorization")
 
 		if authHeader == "" {
 			log.Printf("Authentication failed: Missing Authorization header from %s", r.RemoteAddr)
-			http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
+			http.Error(w, "Missing Authorization header. Include 'Authorization: Bearer YOUR_API_KEY' header.", http.StatusUnauthorized)
 			return
 		}
 
@@ -140,15 +138,19 @@ func createAuthenticatedProxy(targetAddr, expectedToken string) http.HandlerFunc
 		}
 
 		token := parts[1]
-		if token != expectedToken {
-			log.Printf("Authentication failed: Invalid bearer token from %s", r.RemoteAddr)
-			http.Error(w, "Invalid bearer token", http.StatusUnauthorized)
+		if token == "" {
+			log.Printf("Authentication failed: Empty bearer token from %s", r.RemoteAddr)
+			http.Error(w, "Empty bearer token", http.StatusUnauthorized)
 			return
 		}
 
-		log.Printf("Authentication successful for %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+		// Store API key in request context for downstream use by gRPC clients
+		ctx := auth.WithAPIKey(r.Context(), token)
+		r = r.WithContext(ctx)
 
-		// Forward to proxy handler
+		log.Printf("Authentication: Extracted API key from Authorization header for %s %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+
+		// Forward to proxy handler with enriched context
 		proxyRequest(w, r, targetAddr)
 	}
 }
@@ -267,12 +269,12 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // DefaultHTTPOptions returns default HTTP server options.
-// When authentication is enabled, the PLANTON_API_KEY is used as the bearer token.
+// With per-user authentication, each user's API key is extracted from the Authorization
+// header rather than using a shared bearer token from the environment.
 func DefaultHTTPOptions(cfg *config.Config) HTTPServerOptions {
 	return HTTPServerOptions{
 		Port:            cfg.HTTPPort,
 		AuthEnabled:     cfg.HTTPAuthEnabled,
-		BearerToken:     cfg.PlantonAPIKey, // Use API key as bearer token
 		BaseURL:         fmt.Sprintf("http://localhost:%s", cfg.HTTPPort),
 		ShutdownTimeout: 10 * time.Second,
 	}

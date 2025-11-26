@@ -12,7 +12,7 @@ import (
 	"buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/search/v1/apiresource"
 	cloudresourcesearch "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/search/v1/infrahub/cloudresource"
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
+	commonauth "github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -52,7 +52,7 @@ func NewCloudResourceQueryClient(grpcEndpoint, apiKey string) (*CloudResourceQue
 	// Create gRPC dial options with per-RPC credentials (matches CLI pattern)
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(transportCreds),
-		grpc.WithPerRPCCredentials(auth.NewTokenAuth(apiKey)),
+		grpc.WithPerRPCCredentials(commonauth.NewTokenAuth(apiKey)),
 	}
 
 	// Establish connection
@@ -103,6 +103,27 @@ func (c *CloudResourceQueryClient) GetById(ctx context.Context, resourceID strin
 	return resp, nil
 }
 
+// NewCloudResourceQueryClientFromContext creates a new Cloud Resource Query gRPC client
+// using the API key from the request context.
+//
+// This constructor is used in HTTP transport mode to create clients with per-user API keys
+// extracted from Authorization headers, enabling proper multi-user support with Fine-Grained
+// Authorization.
+//
+// Args:
+//   - ctx: Context containing the API key (set by HTTP authentication middleware)
+//   - grpcEndpoint: Planton Cloud APIs endpoint (e.g., "localhost:8080" or "api.live.planton.ai:443")
+//
+// Returns a CloudResourceQueryClient and any error encountered during connection setup.
+// Returns an error if no API key is found in the context.
+func NewCloudResourceQueryClientFromContext(ctx context.Context, grpcEndpoint string) (*CloudResourceQueryClient, error) {
+	apiKey, err := commonauth.GetAPIKey(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get API key from context: %w", err)
+	}
+	return NewCloudResourceQueryClient(grpcEndpoint, apiKey)
+}
+
 // Close closes the gRPC connection.
 func (c *CloudResourceQueryClient) Close() error {
 	if c.conn != nil {
@@ -146,7 +167,7 @@ func NewCloudResourceSearchClient(grpcEndpoint, apiKey string) (*CloudResourceSe
 	// Create gRPC dial options with per-RPC credentials (matches CLI pattern)
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(transportCreds),
-		grpc.WithPerRPCCredentials(auth.NewTokenAuth(apiKey)),
+		grpc.WithPerRPCCredentials(commonauth.NewTokenAuth(apiKey)),
 	}
 
 	// Establish connection
@@ -252,6 +273,27 @@ func (c *CloudResourceSearchClient) LookupCloudResource(
 	log.Printf("Successfully found cloud resource: %s", resp.GetId())
 
 	return resp, nil
+}
+
+// NewCloudResourceSearchClientFromContext creates a new Cloud Resource Search gRPC client
+// using the API key from the request context.
+//
+// This constructor is used in HTTP transport mode to create clients with per-user API keys
+// extracted from Authorization headers, enabling proper multi-user support with Fine-Grained
+// Authorization.
+//
+// Args:
+//   - ctx: Context containing the API key (set by HTTP authentication middleware)
+//   - grpcEndpoint: Planton Cloud APIs endpoint (e.g., "localhost:8080" or "api.live.planton.ai:443")
+//
+// Returns a CloudResourceSearchClient and any error encountered during connection setup.
+// Returns an error if no API key is found in the context.
+func NewCloudResourceSearchClientFromContext(ctx context.Context, grpcEndpoint string) (*CloudResourceSearchClient, error) {
+	apiKey, err := commonauth.GetAPIKey(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get API key from context: %w", err)
+	}
+	return NewCloudResourceSearchClient(grpcEndpoint, apiKey)
 }
 
 // Close closes the gRPC connection.

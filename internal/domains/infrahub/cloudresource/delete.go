@@ -82,18 +82,24 @@ func HandleDeleteCloudResource(
 
 	log.Printf("Tool invoked: delete_cloud_resource, resource_id=%s, force=%v", resourceID, force)
 
-	// 3. Create command client
-	client, err := clients.NewCloudResourceCommandClient(
-		cfg.PlantonAPIsGRPCEndpoint,
-		cfg.PlantonAPIKey,
-	)
+	// 3. Create command client with per-user API key from context
+	// For HTTP transport: API key extracted from Authorization header
+	// For STDIO transport: API key from environment variable (fallback to config)
+	client, err := clients.NewCloudResourceCommandClientFromContext(ctx, cfg.PlantonAPIsGRPCEndpoint)
 	if err != nil {
-		errResp := errors.ErrorResponse{
-			Error:   "CLIENT_ERROR",
-			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
+		// Fallback to config API key for STDIO mode
+		client, err = clients.NewCloudResourceCommandClient(
+			cfg.PlantonAPIsGRPCEndpoint,
+			cfg.PlantonAPIKey,
+		)
+		if err != nil {
+			errResp := errors.ErrorResponse{
+				Error:   "CLIENT_ERROR",
+				Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
+			}
+			errJSON, _ := json.MarshalIndent(errResp, "", "  ")
+			return mcp.NewToolResultText(string(errJSON)), nil
 		}
-		errJSON, _ := json.MarshalIndent(errResp, "", "  ")
-		return mcp.NewToolResultText(string(errJSON)), nil
 	}
 	defer client.Close()
 

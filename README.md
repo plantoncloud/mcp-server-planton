@@ -66,11 +66,12 @@ Add to your Cursor MCP settings (`~/.cursor/mcp.json`):
 Run the Docker container:
 ```bash
 docker run -p 8080:8080 \
-  -e PLANTON_API_KEY="YOUR_PLANTON_API_KEY" \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
   ghcr.io/plantoncloud-inc/mcp-server-planton:latest
 ```
+
+**Note:** The API key is provided by each user in the `Authorization` header, not in the Docker environment. This enables proper multi-user support with per-user permissions.
 
 #### Local Binary (STDIO Mode)
 
@@ -176,14 +177,23 @@ For complete configuration options, see [Configuration Guide](docs/configuration
 
 ## Security
 
-This MCP server uses **user API keys** rather than machine accounts, ensuring that:
+This MCP server uses **user API keys** for all operations, ensuring that:
 
-- All queries respect your actual permissions (Fine-Grained Authorization)
-- No API key persistence - keys are held in memory only during execution
-- Every API call is validated against your permissions
-- Complete audit trail with your user identity
+- **Per-User Authentication**: Each user provides their own API key via Authorization header (HTTP mode) or environment variable (STDIO mode)
+- **Fine-Grained Authorization**: All queries respect each user's actual permissions
+- **No API Key Persistence**: Keys are held in memory only during request execution
+- **Complete Audit Trail**: Every API call is validated and logged with the user's identity
+- **Multi-User Support**: HTTP transport supports multiple users with different permissions accessing the same server instance
 
-When using HTTP transport with authentication enabled, your `PLANTON_API_KEY` serves as the bearer token for accessing the MCP server endpoint.
+### HTTP Transport Security Model
+
+When using HTTP transport, each user's API key is:
+1. Provided in the `Authorization: Bearer YOUR_API_KEY` header
+2. Extracted and validated by the MCP server
+3. Passed to Planton Cloud APIs for Fine-Grained Authorization
+4. Used only for that specific request (not stored)
+
+This architecture ensures true multi-tenant security where users can only access resources they have permission to view or manage.
 
 ## Documentation
 

@@ -79,6 +79,8 @@ type Config struct {
 //
 // Required environment variables:
 //   - PLANTON_API_KEY: User's API key for authentication (can be JWT token or API key)
+//     Required for STDIO transport mode (used directly for authentication)
+//     Optional for HTTP transport mode (extracted from Authorization header per-request)
 //
 // Optional environment variables:
 //   - PLANTON_APIS_GRPC_ENDPOINT: Override endpoint (takes precedence)
@@ -88,20 +90,38 @@ type Config struct {
 //   - PLANTON_MCP_HTTP_PORT: HTTP server port - defaults to "8080"
 //   - PLANTON_MCP_HTTP_AUTH_ENABLED: Enable bearer token auth - defaults to "true"
 //
-// When HTTP authentication is enabled, PLANTON_API_KEY is used as the bearer token.
-// Returns an error if PLANTON_API_KEY is missing.
+// For STDIO mode, PLANTON_API_KEY from environment is used for all gRPC calls.
+// For HTTP mode, PLANTON_API_KEY from Authorization header is extracted per-request,
+// enabling proper multi-user support with Fine-Grained Authorization.
 func LoadFromEnv() (*Config, error) {
 	apiKey := os.Getenv(APIKeyEnvVar)
-	if apiKey == "" {
+	transport := getTransport()
+
+	// For STDIO mode, API key is required (used directly for authentication)
+	if transport == TransportStdio && apiKey == "" {
 		return nil, fmt.Errorf(
-			"%s environment variable required. "+
+			"%s environment variable required for STDIO transport. "+
 				"This should be set by LangGraph when spawning MCP server",
 			APIKeyEnvVar,
 		)
 	}
 
+	// For HTTP mode, API key is optional (extracted from Authorization header)
+	// If provided, it can be used as a fallback or default key
+	if transport == TransportHTTP && apiKey == "" {
+		// Log that we're in HTTP mode without default API key
+		// This is normal - API keys will come from HTTP Authorization headers
+	}
+
+	// For both mode, API key is required for STDIO transport
+	if transport == TransportBoth && apiKey == "" {
+		return nil, fmt.Errorf(
+			"%s environment variable required for STDIO transport in dual-transport mode",
+			APIKeyEnvVar,
+		)
+	}
+
 	endpoint := getEndpoint()
-	transport := getTransport()
 	httpPort := getHTTPPort()
 	httpAuthEnabled := getHTTPAuthEnabled()
 

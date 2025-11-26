@@ -126,19 +126,25 @@ func HandleLookupCloudResourceByName(
 	log.Printf("Tool invoked: lookup_cloud_resource_by_name, org_id=%s, env=%s, kind=%s, name=%s",
 		orgID, envName, kindStr, name)
 
-	// Create gRPC client with user's API key
-	client, err := clients.NewCloudResourceSearchClient(
-		cfg.PlantonAPIsGRPCEndpoint,
-		cfg.PlantonAPIKey,
-	)
+	// Create gRPC client with per-user API key from context
+	// For HTTP transport: API key extracted from Authorization header
+	// For STDIO transport: API key from environment variable (fallback to config)
+	client, err := clients.NewCloudResourceSearchClientFromContext(ctx, cfg.PlantonAPIsGRPCEndpoint)
 	if err != nil {
-		errResp := errors.ErrorResponse{
-			Error:   "CLIENT_ERROR",
-			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
-			OrgID:   orgID,
+		// Fallback to config API key for STDIO mode
+		client, err = clients.NewCloudResourceSearchClient(
+			cfg.PlantonAPIsGRPCEndpoint,
+			cfg.PlantonAPIKey,
+		)
+		if err != nil {
+			errResp := errors.ErrorResponse{
+				Error:   "CLIENT_ERROR",
+				Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
+				OrgID:   orgID,
+			}
+			errJSON, _ := json.MarshalIndent(errResp, "", "  ")
+			return mcp.NewToolResultText(string(errJSON)), nil
 		}
-		errJSON, _ := json.MarshalIndent(errResp, "", "  ")
-		return mcp.NewToolResultText(string(errJSON)), nil
 	}
 	defer client.Close()
 

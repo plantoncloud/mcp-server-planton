@@ -92,18 +92,24 @@ func HandleUpdateCloudResource(
 
 	log.Printf("Tool invoked: update_cloud_resource, resource_id=%s", resourceID)
 
-	// 4. Fetch existing resource to get kind and metadata
-	queryClient, err := clients.NewCloudResourceQueryClient(
-		cfg.PlantonAPIsGRPCEndpoint,
-		cfg.PlantonAPIKey,
-	)
+	// 4. Fetch existing resource to get kind and metadata with per-user API key
+	// For HTTP transport: API key extracted from Authorization header
+	// For STDIO transport: API key from environment variable (fallback to config)
+	queryClient, err := clients.NewCloudResourceQueryClientFromContext(ctx, cfg.PlantonAPIsGRPCEndpoint)
 	if err != nil {
-		errResp := errors.ErrorResponse{
-			Error:   "CLIENT_ERROR",
-			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
+		// Fallback to config API key for STDIO mode
+		queryClient, err = clients.NewCloudResourceQueryClient(
+			cfg.PlantonAPIsGRPCEndpoint,
+			cfg.PlantonAPIKey,
+		)
+		if err != nil {
+			errResp := errors.ErrorResponse{
+				Error:   "CLIENT_ERROR",
+				Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
+			}
+			errJSON, _ := json.MarshalIndent(errResp, "", "  ")
+			return mcp.NewToolResultText(string(errJSON)), nil
 		}
-		errJSON, _ := json.MarshalIndent(errResp, "", "  ")
-		return mcp.NewToolResultText(string(errJSON)), nil
 	}
 	defer queryClient.Close()
 
@@ -135,18 +141,24 @@ func HandleUpdateCloudResource(
 		return mcp.NewToolResultText(string(errJSON)), nil
 	}
 
-	// 8. Create command client and update
-	commandClient, err := clients.NewCloudResourceCommandClient(
-		cfg.PlantonAPIsGRPCEndpoint,
-		cfg.PlantonAPIKey,
-	)
+	// 8. Create command client with per-user API key and update
+	// For HTTP transport: API key extracted from Authorization header
+	// For STDIO transport: API key from environment variable (fallback to config)
+	commandClient, err := clients.NewCloudResourceCommandClientFromContext(ctx, cfg.PlantonAPIsGRPCEndpoint)
 	if err != nil {
-		errResp := errors.ErrorResponse{
-			Error:   "CLIENT_ERROR",
-			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
+		// Fallback to config API key for STDIO mode
+		commandClient, err = clients.NewCloudResourceCommandClient(
+			cfg.PlantonAPIsGRPCEndpoint,
+			cfg.PlantonAPIKey,
+		)
+		if err != nil {
+			errResp := errors.ErrorResponse{
+				Error:   "CLIENT_ERROR",
+				Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
+			}
+			errJSON, _ := json.MarshalIndent(errResp, "", "  ")
+			return mcp.NewToolResultText(string(errJSON)), nil
 		}
-		errJSON, _ := json.MarshalIndent(errResp, "", "  ")
-		return mcp.NewToolResultText(string(errJSON)), nil
 	}
 	defer commandClient.Close()
 

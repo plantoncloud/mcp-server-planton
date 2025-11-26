@@ -10,8 +10,18 @@ Comprehensive configuration options for the Planton Cloud MCP Server.
 
 User's API key for authentication with Planton Cloud APIs. This can be either a JWT token or an API key obtained from the Planton Cloud console.
 
+**Usage depends on transport mode:**
+
+- **STDIO Mode**: Required in environment variable - used directly for all API calls
+- **HTTP Mode**: Optional in environment variable - each user provides their own key in `Authorization` header
+- **Both Mode**: Required in environment variable for STDIO connections
+
 ```bash
+# For STDIO mode (required)
 export PLANTON_API_KEY="your-api-key-or-jwt-token"
+
+# For HTTP mode (optional - users provide via Authorization header)
+# No environment variable needed
 ```
 
 **How to obtain:**
@@ -103,7 +113,7 @@ export PLANTON_MCP_HTTP_AUTH_ENABLED="true"  # or "false"
 - Set to `false` for local testing or when network-level security is sufficient
 
 **Authentication mechanism:**
-When enabled, your `PLANTON_API_KEY` is used as the bearer token for HTTP authentication. This simplifies configuration by using a single credential for both MCP server access and Planton Cloud API authorization.
+When enabled, each user's API key from the `Authorization: Bearer YOUR_API_KEY` header is extracted and passed to Planton Cloud APIs. This enables proper multi-user support with per-user Fine-Grained Authorization.
 
 ## Configuration Loading
 
@@ -167,7 +177,7 @@ PLANTON_MCP_TRANSPORT=stdio  # or 'http', 'both'
 
 # Optional: HTTP transport settings (when using 'http' or 'both')
 PLANTON_MCP_HTTP_PORT=8080
-PLANTON_MCP_HTTP_AUTH_ENABLED=true  # or 'false' (uses PLANTON_API_KEY as bearer token)
+PLANTON_MCP_HTTP_AUTH_ENABLED=true  # or 'false' (extracts per-user API keys from Authorization header)
 ```
 
 **Note:** The Go server doesn't automatically load `.env` files. You'll need to source them manually or use a tool like `direnv`:
@@ -542,13 +552,25 @@ mcp-server-planton
 ```yaml
 version: '3.8'
 services:
-  mcp-server:
+  # STDIO mode (single user)
+  mcp-server-stdio:
     image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
     environment:
       PLANTON_API_KEY: ${PLANTON_API_KEY}
       PLANTON_CLOUD_ENVIRONMENT: live
+      PLANTON_MCP_TRANSPORT: stdio
     stdin_open: true
     tty: true
+  
+  # HTTP mode (multi-user)
+  mcp-server-http:
+    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    ports:
+      - "8080:8080"
+    environment:
+      PLANTON_MCP_TRANSPORT: http
+      PLANTON_MCP_HTTP_AUTH_ENABLED: "true"
+      PLANTON_CLOUD_ENVIRONMENT: live
 ```
 
 ## Next Steps

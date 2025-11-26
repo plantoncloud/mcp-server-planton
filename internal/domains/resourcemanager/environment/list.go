@@ -66,19 +66,25 @@ func HandleListEnvironmentsForOrg(
 
 	log.Printf("Tool invoked: list_environments_for_org, org_id=%s", orgID)
 
-	// Create gRPC client with user's API key
-	client, err := clients.NewEnvironmentClient(
-		cfg.PlantonAPIsGRPCEndpoint,
-		cfg.PlantonAPIKey,
-	)
+	// Create gRPC client with per-user API key from context
+	// For HTTP transport: API key extracted from Authorization header
+	// For STDIO transport: API key from environment variable (fallback to config)
+	client, err := clients.NewEnvironmentClientFromContext(ctx, cfg.PlantonAPIsGRPCEndpoint)
 	if err != nil {
-		errResp := errors.ErrorResponse{
-			Error:   "CLIENT_ERROR",
-			Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
-			OrgID:   orgID,
+		// Fallback to config API key for STDIO mode
+		client, err = clients.NewEnvironmentClient(
+			cfg.PlantonAPIsGRPCEndpoint,
+			cfg.PlantonAPIKey,
+		)
+		if err != nil {
+			errResp := errors.ErrorResponse{
+				Error:   "CLIENT_ERROR",
+				Message: fmt.Sprintf("Failed to create gRPC client: %v", err),
+				OrgID:   orgID,
+			}
+			errJSON, _ := json.MarshalIndent(errResp, "", "  ")
+			return mcp.NewToolResultText(string(errJSON)), nil
 		}
-		errJSON, _ := json.MarshalIndent(errResp, "", "  ")
-		return mcp.NewToolResultText(string(errJSON)), nil
 	}
 	defer client.Close()
 

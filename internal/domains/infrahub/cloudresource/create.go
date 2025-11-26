@@ -187,13 +187,19 @@ func HandleCreateCloudResource(
 		return mcp.NewToolResultText(string(errJSON)), nil
 	}
 
-	// 8. Create gRPC command client
-	client, err := clients.NewCloudResourceCommandClient(
-		cfg.PlantonAPIsGRPCEndpoint,
-		cfg.PlantonAPIKey,
-	)
+	// 8. Create gRPC command client with per-user API key from context
+	// For HTTP transport: API key extracted from Authorization header
+	// For STDIO transport: API key from environment variable (fallback to config)
+	client, err := clients.NewCloudResourceCommandClientFromContext(ctx, cfg.PlantonAPIsGRPCEndpoint)
 	if err != nil {
-		return errorResponse("CLIENT_ERROR", fmt.Sprintf("Failed to create gRPC client: %v", err)), nil
+		// Fallback to config API key for STDIO mode
+		client, err = clients.NewCloudResourceCommandClient(
+			cfg.PlantonAPIsGRPCEndpoint,
+			cfg.PlantonAPIKey,
+		)
+		if err != nil {
+			return errorResponse("CLIENT_ERROR", fmt.Sprintf("Failed to create gRPC client: %v", err)), nil
+		}
 	}
 	defer client.Close()
 

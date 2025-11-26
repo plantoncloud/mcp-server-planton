@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"errors"
 )
 
 // tokenAuth implements credentials.PerRPCCredentials interface to attach
@@ -40,4 +41,39 @@ func (t tokenAuth) GetRequestMetadata(ctx context.Context, uri ...string) (map[s
 // The actual transport security is determined by the WithTransportCredentials dial option.
 func (tokenAuth) RequireTransportSecurity() bool {
 	return false
+}
+
+// contextKey is a custom type for context keys to avoid collisions.
+type contextKey string
+
+const apiKeyContextKey contextKey = "planton-api-key"
+
+// WithAPIKey adds an API key to the context for use in downstream requests.
+// This is used in HTTP transport mode to pass per-user API keys from HTTP headers
+// to gRPC clients.
+//
+// Example:
+//   ctx := auth.WithAPIKey(r.Context(), "user-api-key")
+//   client, err := NewClientFromContext(ctx, endpoint)
+func WithAPIKey(ctx context.Context, apiKey string) context.Context {
+	return context.WithValue(ctx, apiKeyContextKey, apiKey)
+}
+
+// GetAPIKey retrieves the API key from the context.
+// Returns an error if no API key is found in the context.
+//
+// This is used by gRPC clients to extract the per-user API key for authentication
+// with Planton Cloud APIs, enabling proper Fine-Grained Authorization per user.
+//
+// Example:
+//   apiKey, err := auth.GetAPIKey(ctx)
+//   if err != nil {
+//       return nil, fmt.Errorf("no API key in context: %w", err)
+//   }
+func GetAPIKey(ctx context.Context) (string, error) {
+	apiKey, ok := ctx.Value(apiKeyContextKey).(string)
+	if !ok || apiKey == "" {
+		return "", errors.New("no API key found in context")
+	}
+	return apiKey, nil
 }

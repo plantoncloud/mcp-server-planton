@@ -9,7 +9,7 @@ import (
 	cloudresourcev1grpc "buf.build/gen/go/blintora/apis/grpc/go/ai/planton/infrahub/cloudresource/v1/cloudresourcev1grpc"
 	apiresource "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/apiresource"
 	cloudresourcev1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/infrahub/cloudresource/v1"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
+	commonauth "github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -50,7 +50,7 @@ func NewCloudResourceCommandClient(grpcEndpoint, apiKey string) (*CloudResourceC
 	// Create gRPC dial options with per-RPC credentials (matches CLI pattern)
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(transportCreds),
-		grpc.WithPerRPCCredentials(auth.NewTokenAuth(apiKey)),
+		grpc.WithPerRPCCredentials(commonauth.NewTokenAuth(apiKey)),
 	}
 
 	// Establish connection
@@ -155,6 +155,27 @@ func (c *CloudResourceCommandClient) Delete(ctx context.Context, resourceID stri
 	log.Printf("Successfully deleted cloud resource: %s", resourceID)
 
 	return resp, nil
+}
+
+// NewCloudResourceCommandClientFromContext creates a new Cloud Resource Command gRPC client
+// using the API key from the request context.
+//
+// This constructor is used in HTTP transport mode to create clients with per-user API keys
+// extracted from Authorization headers, enabling proper multi-user support with Fine-Grained
+// Authorization for create, update, and delete operations.
+//
+// Args:
+//   - ctx: Context containing the API key (set by HTTP authentication middleware)
+//   - grpcEndpoint: Planton Cloud APIs endpoint (e.g., "localhost:8080" or "api.live.planton.ai:443")
+//
+// Returns a CloudResourceCommandClient and any error encountered during connection setup.
+// Returns an error if no API key is found in the context.
+func NewCloudResourceCommandClientFromContext(ctx context.Context, grpcEndpoint string) (*CloudResourceCommandClient, error) {
+	apiKey, err := commonauth.GetAPIKey(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get API key from context: %w", err)
+	}
+	return NewCloudResourceCommandClient(grpcEndpoint, apiKey)
 }
 
 // Close closes the gRPC connection.

@@ -66,11 +66,12 @@ Configure HTTP transport using environment variables:
 
 ```bash
 docker run -p 8080:8080 \
-  -e PLANTON_API_KEY="YOUR_PLANTON_API_KEY" \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
   ghcr.io/plantoncloud-inc/mcp-server-planton:latest
 ```
+
+**Note:** Each user provides their own API key in the `Authorization` header, not in the Docker environment.
 
 **2. Configure Cursor:**
 
@@ -121,13 +122,14 @@ sudo mv mcp-server-planton /usr/local/bin/
 **2. Start the server:**
 
 ```bash
-export PLANTON_API_KEY="YOUR_PLANTON_API_KEY"
 export PLANTON_MCP_TRANSPORT="http"
 export PLANTON_MCP_HTTP_PORT="8080"
 export PLANTON_MCP_HTTP_AUTH_ENABLED="true"
 
 mcp-server-planton
 ```
+
+**Note:** Each user provides their own API key in the `Authorization` header when making requests.
 
 **3. Configure Cursor:** (same as Docker setup above)
 
@@ -259,14 +261,17 @@ When deploying HTTP transport in production:
 ### Security Model
 
 ```
-Client → PLANTON_API_KEY (Bearer) → MCP Server → PLANTON_API_KEY → Planton APIs
-         (Authentication)                          (Authorization & FGA)
+User A → API Key A (Bearer) → MCP Server → API Key A → Planton APIs (User A permissions)
+User B → API Key B (Bearer) → MCP Server → API Key B → Planton APIs (User B permissions)
+         (Per-User Auth)                      (Per-User FGA)
 ```
 
-- **PLANTON_API_KEY as Bearer Token** - Authenticates access to your MCP server instance
-- **PLANTON_API_KEY to Planton APIs** - Enforces your actual permissions (Fine-Grained Authorization)
+- **Per-User Authentication**: Each user's API key is extracted from their `Authorization` header
+- **Context-Based Forwarding**: API keys are passed through to Planton Cloud APIs per-request
+- **Fine-Grained Authorization**: Each API call enforces the specific user's permissions
+- **Multi-Tenant Security**: Users can only access resources they have permission to view or manage
 
-This unified approach simplifies authentication while maintaining security through your user permissions.
+This architecture enables true multi-user support with proper isolation between users.
 
 ## Deployment Examples
 
@@ -280,11 +285,12 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - PLANTON_API_KEY=${PLANTON_API_KEY}
       - PLANTON_MCP_TRANSPORT=http
       - PLANTON_MCP_HTTP_PORT=8080
       - PLANTON_MCP_HTTP_AUTH_ENABLED=true
 ```
+
+**Note:** Users provide their own API keys in the `Authorization` header when making requests.
 
 ### Kubernetes Deployment
 
@@ -309,11 +315,6 @@ spec:
         ports:
         - containerPort: 8080
         env:
-        - name: PLANTON_API_KEY
-          valueFrom:
-            secretKeyRef:
-              name: planton-secrets
-              key: api-key
         - name: PLANTON_MCP_TRANSPORT
           value: "http"
         - name: PLANTON_MCP_HTTP_PORT
@@ -334,7 +335,7 @@ spec:
   type: LoadBalancer
 ```
 
-**Note:** In production deployments, each user should have their own instance of the MCP server with their own API key, or use the hosted endpoint at `https://mcp.planton.ai/` which handles multi-user authentication automatically.
+**Multi-User Support:** The HTTP transport now supports multiple users with different API keys accessing the same server instance. Each user's API key is extracted from the `Authorization` header and passed to Planton Cloud APIs, ensuring proper Fine-Grained Authorization per user. This enables true multi-tenant deployments where users can only access resources they have permission to view or manage.
 
 ## Migration Guide
 

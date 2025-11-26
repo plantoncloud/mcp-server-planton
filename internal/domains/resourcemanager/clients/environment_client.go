@@ -9,7 +9,7 @@ import (
 	environmentv1grpc "buf.build/gen/go/blintora/apis/grpc/go/ai/planton/resourcemanager/environment/v1/environmentv1grpc"
 	environmentv1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/resourcemanager/environment/v1"
 	organizationv1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/resourcemanager/organization/v1"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
+	commonauth "github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
@@ -49,7 +49,7 @@ func NewEnvironmentClient(grpcEndpoint, apiKey string) (*EnvironmentClient, erro
 	// Create gRPC dial options with per-RPC credentials (matches CLI pattern)
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(transportCreds),
-		grpc.WithPerRPCCredentials(auth.NewTokenAuth(apiKey)),
+		grpc.WithPerRPCCredentials(commonauth.NewTokenAuth(apiKey)),
 	}
 
 	// Establish connection
@@ -101,6 +101,27 @@ func (c *EnvironmentClient) FindByOrg(ctx context.Context, orgID string) ([]*env
 	log.Printf("Found %d environments for org: %s", len(environments), orgID)
 
 	return environments, nil
+}
+
+// NewEnvironmentClientFromContext creates a new Environment gRPC client
+// using the API key from the request context.
+//
+// This constructor is used in HTTP transport mode to create clients with per-user API keys
+// extracted from Authorization headers, enabling proper multi-user support with Fine-Grained
+// Authorization.
+//
+// Args:
+//   - ctx: Context containing the API key (set by HTTP authentication middleware)
+//   - grpcEndpoint: Planton Cloud APIs endpoint (e.g., "localhost:8080" or "api.live.planton.ai:443")
+//
+// Returns an EnvironmentClient and any error encountered during connection setup.
+// Returns an error if no API key is found in the context.
+func NewEnvironmentClientFromContext(ctx context.Context, grpcEndpoint string) (*EnvironmentClient, error) {
+	apiKey, err := commonauth.GetAPIKey(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get API key from context: %w", err)
+	}
+	return NewEnvironmentClient(grpcEndpoint, apiKey)
 }
 
 // Close closes the gRPC connection.
