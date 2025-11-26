@@ -3,6 +3,7 @@ package internal
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
 )
@@ -187,4 +188,17 @@ func GetPopularKindsByCategory() map[string][]string {
 			"azure_storage_account",
 		},
 	}
+}
+
+// PascalToSnakeCase converts PascalCase to snake_case
+// Examples: "AwsRdsInstance" → "aws_rds_instance", "GcpGkeCluster" → "gcp_gke_cluster"
+func PascalToSnakeCase(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if i > 0 && unicode.IsUpper(r) {
+			result.WriteRune('_')
+		}
+		result.WriteRune(unicode.ToLower(r))
+	}
+	return result.String()
 }

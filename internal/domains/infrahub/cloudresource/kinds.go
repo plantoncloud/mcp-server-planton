@@ -9,12 +9,12 @@ import (
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+	crinternal "github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
 )
 
 // CloudResourceKindInfo represents simplified cloud resource kind information for agents.
 type CloudResourceKindInfo struct {
-	Name        string `json:"name"`
-	Value       int32  `json:"value"`
+	Kind        string `json:"kind"`
 	Provider    string `json:"provider"`
 	Description string `json:"description"`
 }
@@ -26,7 +26,8 @@ func CreateListCloudResourceKindsTool() mcp.Tool {
 		Description: "List all available cloud resource kinds in the Planton Cloud system. " +
 			"Returns the complete taxonomy of deployable infrastructure resource types including " +
 			"AWS, GCP, Azure, Kubernetes, and SaaS platform resources. " +
-			"Use this to understand what resource types can be queried or deployed.",
+			"Each kind is returned in snake_case format (e.g., 'aws_rds_instance') which can be " +
+			"used directly with other tools like 'get_cloud_resource_schema' and 'create_cloud_resource'.",
 		InputSchema: mcp.ToolInputSchema{
 			Type:       "object",
 			Properties: map[string]interface{}{},
@@ -61,11 +62,11 @@ func HandleListCloudResourceKinds(
 
 		// Determine provider based on enum value ranges (from proto comments)
 		provider := getProviderByValue(value)
-		description := getDescriptionByProvider(provider, name)
+		snakeCaseKind := crinternal.PascalToSnakeCase(name)
+		description := getDescriptionByProvider(provider, snakeCaseKind)
 
 		kinds = append(kinds, CloudResourceKindInfo{
-			Name:        name,
-			Value:       value,
+			Kind:        snakeCaseKind,
 			Provider:    provider,
 			Description: description,
 		})

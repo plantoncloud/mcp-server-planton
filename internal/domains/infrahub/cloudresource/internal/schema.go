@@ -100,12 +100,15 @@ func ExtractCloudResourceSchema(kind cloudresourcekind.CloudResourceKind) (*Clou
 }
 
 // kindToFieldName converts a CloudResourceKind string to the protobuf field name format
-// E.g., "kubernetes_deployment" stays "kubernetes_deployment"
-// "aws_eks_cluster" stays "aws_eks_cluster"
+// E.g., "aws_rds_instance" stays "aws_rds_instance" (already snake_case)
+// "AwsRdsInstance" converts to "aws_rds_instance" (PascalCase to snake_case)
 func kindToFieldName(kindStr string) string {
-	// The field names in the CloudObject oneof match the enum values
-	// which are already in snake_case
-	return strings.ToLower(kindStr)
+	// If already snake_case (from agent), return as-is
+	if strings.Contains(kindStr, "_") {
+		return strings.ToLower(kindStr)
+	}
+	// If PascalCase (from enum key), convert to snake_case
+	return PascalToSnakeCase(kindStr)
 }
 
 // extractKindDescription extracts the description from CloudResourceKind enum value options

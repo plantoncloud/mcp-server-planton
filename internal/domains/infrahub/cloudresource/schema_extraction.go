@@ -3,6 +3,7 @@ package cloudresource
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	cloudresourcev1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/infrahub/cloudresource/v1"
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
@@ -100,12 +101,28 @@ func ExtractCloudResourceSchema(kind cloudresourcekind.CloudResourceKind) (*Clou
 }
 
 // kindToFieldName converts a CloudResourceKind string to the protobuf field name format
-// E.g., "kubernetes_deployment" stays "kubernetes_deployment"
-// "aws_eks_cluster" stays "aws_eks_cluster"
+// E.g., "aws_rds_instance" stays "aws_rds_instance" (already snake_case)
+// "AwsRdsInstance" converts to "aws_rds_instance" (PascalCase to snake_case)
 func kindToFieldName(kindStr string) string {
-	// The field names in the CloudObject oneof match the enum values
-	// which are already in snake_case
-	return strings.ToLower(kindStr)
+	// If already snake_case (from agent), return as-is
+	if strings.Contains(kindStr, "_") {
+		return strings.ToLower(kindStr)
+	}
+	// If PascalCase (from enum key), convert to snake_case
+	return pascalToSnakeCase(kindStr)
+}
+
+// pascalToSnakeCase converts PascalCase to snake_case
+// Examples: "AwsRdsInstance" → "aws_rds_instance", "GcpGkeCluster" → "gcp_gke_cluster"
+func pascalToSnakeCase(s string) string {
+	var result strings.Builder
+	for i, r := range s {
+		if i > 0 && unicode.IsUpper(r) {
+			result.WriteRune('_')
+		}
+		result.WriteRune(unicode.ToLower(r))
+	}
+	return result.String()
 }
 
 // extractKindDescription extracts the description from CloudResourceKind enum value options
