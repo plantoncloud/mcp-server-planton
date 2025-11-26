@@ -6,91 +6,120 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-ghcr.io-blue?logo=docker)](https://github.com/plantoncloud-inc/mcp-server-planton/pkgs/container/mcp-server-planton)
 
-MCP (Model Context Protocol) server for Planton Cloud that enables AI agents to query cloud resources using user permissions.
+MCP (Model Context Protocol) server for Planton Cloud that enables AI agents to query and manage cloud resources using user permissions.
 
 ## Overview
 
-The Planton Cloud MCP Server provides tools for LangGraph agents, Claude Desktop, and other MCP clients to interact with Planton Cloud resources. Unlike typical MCP servers that use machine accounts, this server uses **user API keys**, ensuring that all resource queries respect Fine-Grained Authorization (FGA) based on the user's actual permissions.
+The Planton Cloud MCP Server provides AI assistants like Cursor, Claude Desktop, and LangGraph agents with tools to interact with Planton Cloud resources. All queries respect your actual permissions through API key authentication.
 
-### Key Features
-
-- **User-scoped permissions** - Queries respect the user's actual permissions via API key
-- **Environment queries** - List and filter environments by organization
-- **Extensible** - More resource types coming soon (organizations, projects, cloud resources)
-- **MCP standard** - Works with any MCP client (LangGraph, Claude Desktop, Cursor, etc.)
-- **Go implementation** - Fast, lightweight, and easy to distribute
-
-## Installation
-
-### Option 1: Docker (Recommended)
-
-Pull and run from GitHub Container Registry:
-
-```bash
-docker run -i --rm \
-  -e PLANTON_API_KEY="your-api-key" \
-  -e PLANTON_CLOUD_ENVIRONMENT="live" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
-```
-
-### Option 2: Pre-built Binaries
-
-Download the latest release for your platform from [GitHub Releases](https://github.com/plantoncloud-inc/mcp-server-planton/releases):
-
-```bash
-# macOS (ARM64)
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_arm64.tar.gz | tar xz
-
-# macOS (Intel)
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_x86_64.tar.gz | tar xz
-
-# Linux (AMD64)
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Linux_x86_64.tar.gz | tar xz
-
-# Move to PATH
-sudo mv mcp-server-planton /usr/local/bin/
-```
-
-### Option 3: From Source
-
-Requires Go 1.22+:
-
-```bash
-go install github.com/plantoncloud-inc/mcp-server-planton/cmd/mcp-server-planton@latest
-```
-
-Or clone and build:
-
-```bash
-git clone https://github.com/plantoncloud-inc/mcp-server-planton.git
-cd mcp-server-planton
-make build
-```
+**Key Features:**
+- User-scoped permissions via API key authentication
+- Query cloud resources, environments, organizations
+- Create and manage cloud infrastructure
+- Works with any MCP client (Cursor, Claude Desktop, LangGraph)
+- Available as HTTP endpoint or local binary
 
 ## Quick Start
 
-### Standalone Usage
+### Get Your API Key
 
-Set required environment variables:
+1. Log in to [Planton Cloud Console](https://console.planton.cloud)
+2. Click your profile icon → **API Keys**
+3. Click **Create Key** and copy the generated key
 
-```bash
-# Required: Your API key
-export PLANTON_API_KEY="your-api-key"
+### Integration with Cursor
 
-# Optional: Target environment (defaults to 'live')
-export PLANTON_CLOUD_ENVIRONMENT="live"  # or 'test', 'local'
+Add to your Cursor MCP settings (`~/.cursor/mcp.json`):
 
-# Optional: Override endpoint (not needed if using standard environments)
-# export PLANTON_APIS_GRPC_ENDPOINT="custom-endpoint:443"
+#### Remote Endpoint (Recommended)
+
+```json
+{
+  "mcpServers": {
+    "planton-cloud": {
+      "type": "http",
+      "url": "https://mcp.planton.ai/",
+      "headers": {
+        "Authorization": "Bearer YOUR_PLANTON_API_KEY"
+      }
+    }
+  }
+}
 ```
 
-Run the server:
+#### Local Testing with Docker
 
-```bash
-mcp-server-planton
+```json
+{
+  "mcpServers": {
+    "planton-cloud": {
+      "type": "http",
+      "url": "http://localhost:8080/",
+      "headers": {
+        "Authorization": "Bearer YOUR_PLANTON_API_KEY"
+      }
+    }
+  }
+}
 ```
 
-**Note:** By default, the server connects to `api.live.planton.cloud:443`. For local development, set `PLANTON_CLOUD_ENVIRONMENT=local`.
+Run the Docker container:
+```bash
+docker run -p 8080:8080 \
+  -e PLANTON_API_KEY="YOUR_PLANTON_API_KEY" \
+  -e PLANTON_MCP_TRANSPORT="http" \
+  -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
+  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+```
+
+#### Local Binary (STDIO Mode)
+
+```json
+{
+  "mcpServers": {
+    "planton-cloud": {
+      "command": "mcp-server-planton",
+      "env": {
+        "PLANTON_API_KEY": "YOUR_PLANTON_API_KEY",
+        "PLANTON_CLOUD_ENVIRONMENT": "live"
+      }
+    }
+  }
+}
+```
+
+Install the binary:
+```bash
+# macOS (ARM64)
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_arm64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+
+# macOS (Intel)
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_x86_64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+
+# Linux (AMD64)
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Linux_x86_64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+```
+
+### Integration with Claude Desktop
+
+Add to your Claude Desktop MCP settings:
+
+```json
+{
+  "mcpServers": {
+    "planton-cloud": {
+      "command": "mcp-server-planton",
+      "env": {
+        "PLANTON_API_KEY": "YOUR_PLANTON_API_KEY",
+        "PLANTON_CLOUD_ENVIRONMENT": "live"
+      }
+    }
+  }
+}
+```
 
 ### Integration with LangGraph
 
@@ -110,426 +139,68 @@ Add to your `langgraph.json`:
 }
 ```
 
-Or using Docker:
+## Available Tools
 
-```json
-{
-  "mcp_servers": {
-    "planton-cloud": {
-      "command": "docker",
-      "args": [
-        "run", "-i", "--rm",
-        "-e", "PLANTON_API_KEY=${PLANTON_API_KEY}",
-        "-e", "PLANTON_CLOUD_ENVIRONMENT=live",
-        "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
-      ]
-    }
-  }
-}
-```
+The MCP server provides tools for querying and managing Planton Cloud resources:
 
-### Integration with Claude Desktop
+### Cloud Resources
+- `list_cloud_resource_kinds` - List all available cloud resource types
+- `get_cloud_resource_schema` - Get schema/spec for a resource type
+- `search_cloud_resources` - Search and filter cloud resources
+- `lookup_cloud_resource_by_name` - Find resource by exact name
+- `get_cloud_resource_by_id` - Get complete resource details by ID
+- `create_cloud_resource` - Create new cloud resources
+- `update_cloud_resource` - Update existing resources
+- `delete_cloud_resource` - Delete cloud resources
 
-Add to your Claude Desktop MCP settings:
+### Environments
+- `list_environments_for_org` - List environments in an organization
 
-```json
-{
-  "mcpServers": {
-    "planton-cloud": {
-      "command": "mcp-server-planton",
-      "env": {
-        "PLANTON_API_KEY": "your-api-key",
-        "PLANTON_CLOUD_ENVIRONMENT": "live"
-      }
-    }
-  }
-}
-```
-
-Or using Docker:
-
-```json
-{
-  "mcpServers": {
-    "planton-cloud": {
-      "command": "docker",
-      "args": [
-        "run", "-i", "--rm",
-        "-e", "PLANTON_API_KEY=your-api-key",
-        "-e", "PLANTON_CLOUD_ENVIRONMENT=live",
-        "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
-      ]
-    }
-  }
-}
-```
-
-## HTTP Transport
-
-The MCP server supports HTTP transport using Server-Sent Events (SSE) for remote access and integrations, in addition to the default STDIO transport.
-
-### Transport Modes
-
-- **stdio** (default): Standard input/output for local AI clients (Claude Desktop, Cursor)
-- **http**: HTTP/SSE transport for remote access, webhooks, and cloud deployments
-- **both**: Run both transports simultaneously
-
-### Running with HTTP Transport
-
-#### Local Testing (No Authentication)
-
-```bash
-export PLANTON_API_KEY="your-api-key"
-export PLANTON_MCP_TRANSPORT="http"
-export PLANTON_MCP_HTTP_PORT="8080"
-export PLANTON_MCP_HTTP_AUTH_ENABLED="false"
-
-mcp-server-planton
-```
-
-Access the server:
-```bash
-# Health check
-curl http://localhost:8080/health
-
-# SSE connection (will stay open)
-curl http://localhost:8080/sse
-```
-
-#### Production (With Authentication)
-
-```bash
-export PLANTON_API_KEY="your-api-key"
-export PLANTON_MCP_TRANSPORT="http"
-export PLANTON_MCP_HTTP_PORT="8080"
-export PLANTON_MCP_HTTP_AUTH_ENABLED="true"
-export PLANTON_MCP_HTTP_BEARER_TOKEN="your-secure-random-token"
-
-mcp-server-planton
-```
-
-Access with bearer token:
-```bash
-curl -H "Authorization: Bearer your-secure-random-token" http://localhost:8080/sse
-```
-
-### Docker with HTTP Transport
-
-```bash
-# Without authentication (for testing)
-docker run -p 8080:8080 \
-  -e PLANTON_API_KEY="your-api-key" \
-  -e PLANTON_MCP_TRANSPORT="http" \
-  -e PLANTON_MCP_HTTP_AUTH_ENABLED="false" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
-
-# With authentication (recommended)
-docker run -p 8080:8080 \
-  -e PLANTON_API_KEY="your-api-key" \
-  -e PLANTON_MCP_TRANSPORT="http" \
-  -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
-  -e PLANTON_MCP_HTTP_BEARER_TOKEN="your-secure-token" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
-```
-
-### HTTP Endpoints
-
-- `GET /health` - Health check endpoint (returns `{"status":"ok"}`)
-- `GET /sse` - SSE connection endpoint for MCP protocol
-- `POST /message` - Message endpoint for MCP protocol
-
-### Use Cases
-
-**STDIO Transport:**
-- Local AI clients (Claude Desktop, Cursor)
-- Development and testing
-- Direct process spawning by LangGraph
-
-**HTTP Transport:**
-- Remote access to MCP server
-- Webhook integrations
-- Cloud deployments (Docker, Kubernetes)
-- Team shared services
-- API access from web applications
-
-**Both Transports:**
-- Development environments needing both local and remote access
-- Testing remote clients while maintaining local workflow
-
-For detailed HTTP transport documentation, see [HTTP Transport Guide](docs/http-transport.md).
+All tools respect your user permissions - you can only access resources you have permission to view or manage.
 
 ## Configuration
 
-### Environment Variables
+### Essential Environment Variables
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `PLANTON_API_KEY` | Yes | - | User's API key for authentication (can be JWT token or API key) |
-| `PLANTON_CLOUD_ENVIRONMENT` | No | `live` | Target environment: `live`, `test`, or `local` |
-| `PLANTON_APIS_GRPC_ENDPOINT` | No | (based on env) | Override gRPC endpoint (takes precedence over environment) |
-| `PLANTON_MCP_TRANSPORT` | No | `stdio` | Transport mode: `stdio`, `http`, or `both` |
-| `PLANTON_MCP_HTTP_PORT` | No | `8080` | HTTP server port (used when transport is `http` or `both`) |
-| `PLANTON_MCP_HTTP_AUTH_ENABLED` | No | `true` | Enable bearer token authentication for HTTP transport |
-| `PLANTON_MCP_HTTP_BEARER_TOKEN` | Conditional | - | Bearer token for HTTP auth (required if auth is enabled and transport is `http` or `both`) |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PLANTON_API_KEY` | **(required)** | Your API key from Planton Cloud console |
+| `PLANTON_CLOUD_ENVIRONMENT` | `live` | Target environment: `live`, `test`, or `local` |
+| `PLANTON_MCP_TRANSPORT` | `stdio` | Transport mode: `stdio`, `http`, or `both` |
+| `PLANTON_MCP_HTTP_PORT` | `8080` | HTTP server port (when using HTTP transport) |
+| `PLANTON_MCP_HTTP_AUTH_ENABLED` | `true` | Enable bearer token authentication for HTTP |
 
-**Environment-based Endpoints:**
-- `live` (default): `api.live.planton.ai:443`
-- `test`: `api.test.planton.cloud:443`
-- `local`: `localhost:8080`
+**Note:** When HTTP authentication is enabled, your `PLANTON_API_KEY` is used as the bearer token.
 
-### Getting an API Key
+For complete configuration options, see [Configuration Guide](docs/configuration.md).
 
-**From Web Console:**
+## Security
 
-1. Log in to Planton Cloud web console
-2. Click on your profile icon in the top-right corner
-3. Select **API Keys** from the menu
-4. Click **Create Key** to generate a new API key
-5. Copy the generated key
+This MCP server uses **user API keys** rather than machine accounts, ensuring that:
 
-**Note:** Existing API keys may not be visible in the console for security reasons, so it's recommended to create a new key.
+- All queries respect your actual permissions (Fine-Grained Authorization)
+- No API key persistence - keys are held in memory only during execution
+- Every API call is validated against your permissions
+- Complete audit trail with your user identity
 
-## Available Tools
+When using HTTP transport with authentication enabled, your `PLANTON_API_KEY` serves as the bearer token for accessing the MCP server endpoint.
 
-### list_environments_for_org
+## Documentation
 
-List all environments available in an organization that the user has permission to view.
-
-**Input:**
-```json
-{
-  "org_id": "your-organization-id"
-}
-```
-
-**Output:**
-```json
-[
-  {
-    "id": "env-123",
-    "slug": "production",
-    "name": "Production Environment",
-    "description": "Production deployment environment"
-  },
-  {
-    "id": "env-456",
-    "slug": "staging",
-    "name": "Staging Environment",
-    "description": "Pre-production staging"
-  }
-]
-```
-
-**Error Handling:**
-
-The tool returns user-friendly error messages for common issues:
-
-- `UNAUTHENTICATED` - API key invalid or expired
-- `PERMISSION_DENIED` - User lacks permission to view environments in the organization
-- `NOT_FOUND` - Organization doesn't exist
-- `UNAVAILABLE` - Planton Cloud APIs are temporarily unavailable
-
-## Security Architecture
-
-### User API Key Propagation
-
-This MCP server follows a unique security pattern:
-
-```
-User → LangGraph/MCP Client → MCP Server (with API key) → Planton Cloud APIs
-```
-
-**Key security properties:**
-
-1. **No API key persistence** - API key is only held in memory during execution
-2. **User permissions enforced** - APIs validate the key and check FGA on every call
-3. **Short-lived process** - MCP server exits when agent execution completes
-4. **Audit trail** - All API calls are logged with user identity
-
-This is different from machine account patterns where a service account has broad permissions. With user API key propagation, the MCP server can only access what the user can access.
-
-## Development
-
-### Prerequisites
-
-- Go 1.22+
-- Access to Planton Cloud APIs (local or remote)
-
-### Setup
-
-```bash
-# Clone repository
-git clone https://github.com/plantoncloud-inc/mcp-server-planton.git
-cd mcp-server-planton
-
-# Install dependencies
-go mod download
-
-# Build
-make build
-```
-
-### Running Locally
-
-#### STDIO Mode (Default - for Claude Desktop, Cursor)
-
-```bash
-export PLANTON_API_KEY="your-api-key"
-export PLANTON_CLOUD_ENVIRONMENT="local"  # or "live" for production
-./bin/mcp-server-planton
-```
-
-The server will start in STDIO mode and wait for JSON-RPC messages on stdin.
-
-#### HTTP Mode (for testing remote access)
-
-```bash
-export PLANTON_API_KEY="your-api-key"
-export PLANTON_CLOUD_ENVIRONMENT="local"
-export PLANTON_MCP_TRANSPORT="http"
-export PLANTON_MCP_HTTP_PORT="8080"
-export PLANTON_MCP_HTTP_AUTH_ENABLED="false"  # disable auth for local testing
-
-./bin/mcp-server-planton
-```
-
-Test the server:
-```bash
-# Health check
-curl http://localhost:8080/health
-
-# SSE connection (will stay open and stream events)
-curl http://localhost:8080/sse
-```
-
-#### Both Modes (STDIO + HTTP simultaneously)
-
-```bash
-export PLANTON_API_KEY="your-api-key"
-export PLANTON_CLOUD_ENVIRONMENT="local"
-export PLANTON_MCP_TRANSPORT="both"
-export PLANTON_MCP_HTTP_PORT="8080"
-export PLANTON_MCP_HTTP_AUTH_ENABLED="false"
-
-./bin/mcp-server-planton
-```
-
-This allows you to test both STDIO integration and HTTP endpoints simultaneously.
-
-### Make Targets
-
-```bash
-make build          # Build binary
-make install        # Install to GOPATH/bin
-make test           # Run tests
-make lint           # Run linter
-make docker-build   # Build Docker image
-make docker-run     # Run Docker container
-make clean          # Remove build artifacts
-```
-
-### Project Structure
-
-```
-mcp-server-planton/
-├── cmd/
-│   └── mcp-server-planton/
-│       └── main.go                      # Entry point
-├── internal/
-│   ├── common/
-│   │   └── auth/
-│   │       └── interceptor.go           # Shared auth interceptor
-│   ├── config/
-│   │   └── config.go                    # Configuration management
-│   ├── infrahub/
-│   │   ├── client.go                    # Cloud resource gRPC clients
-│   │   └── tools/
-│   │       ├── errors.go                # Shared error handling
-│   │       ├── get.go                   # get_cloud_resource_by_id tool
-│   │       ├── kinds.go                 # list_cloud_resource_kinds tool
-│   │       ├── lookup.go                # lookup_cloud_resource_by_name tool
-│   │       └── search.go                # search_cloud_resources tool
-│   ├── resourcemanager/
-│   │   ├── client.go                    # Environment gRPC client
-│   │   └── tools/
-│   │       └── environment.go           # list_environments_for_org tool
-│   └── mcp/
-│       └── server.go                    # MCP server setup and tool registration
-├── .github/
-│   └── workflows/
-│       └── release.yml                  # Release automation
-├── .goreleaser.yaml                     # GoReleaser config
-├── Dockerfile                           # Multi-stage Docker build
-├── Makefile                             # Build commands
-└── README.md                            # This file
-```
-
-## Distribution
-
-### GitHub Releases
-
-Pre-built binaries for multiple platforms are available on [GitHub Releases](https://github.com/plantoncloud-inc/mcp-server-planton/releases):
-
-- macOS (Intel and ARM64)
-- Linux (AMD64 and ARM64)
-- Windows (AMD64)
-
-### Docker Images
-
-Docker images are published to GitHub Container Registry:
-
-```bash
-docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:latest
-docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:v0.1.0
-```
-
-Images are available for:
-- `linux/amd64`
-- `linux/arm64`
-
-## Roadmap
-
-- [x] Environment query tools
-- [x] Go implementation
-- [x] Docker distribution
-- [x] GitHub Releases
-- [ ] Organization query tools
-- [ ] Project query tools
-- [ ] Cloud resource query tools
-- [ ] Resource mutation tools (create, update, delete)
-- [ ] Caching and performance optimization
-- [ ] Comprehensive test suite
-
-## Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Quick Contribution Guide
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Run tests and linting (`make test lint`)
-5. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-6. Push to your fork (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+- [HTTP Transport Guide](docs/http-transport.md) - Running the server locally and HTTP deployment
+- [Configuration Guide](docs/configuration.md) - Complete environment variable reference
+- [Development Guide](docs/development.md) - Contributing and local development setup
+- [Installation Guide](docs/installation.md) - Detailed installation instructions
 
 ## Support
 
-- **Documentation**: [docs/](docs/)
 - **Issues**: [GitHub Issues](https://github.com/plantoncloud-inc/mcp-server-planton/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/plantoncloud-inc/mcp-server-planton/discussions)
+- **Documentation**: [Planton Cloud Docs](https://docs.planton.cloud)
 
 ## License
 
 Apache-2.0 - see [LICENSE](LICENSE) for details.
-
-## Related Projects
-
-- [Planton Cloud](https://planton.cloud) - Cloud infrastructure management platform
-- [Project Planton](https://github.com/project-planton/project-planton) - Open-source deployment components
-- [LangGraph](https://langchain-ai.github.io/langgraph/) - Framework for building stateful AI agents
-- [Model Context Protocol](https://modelcontextprotocol.io) - Protocol for connecting AI models to data sources
 
 ---
 

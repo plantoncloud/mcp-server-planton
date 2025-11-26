@@ -36,9 +36,6 @@ const (
 	// HTTPAuthEnabledEnvVar enables bearer token authentication for HTTP transport
 	HTTPAuthEnabledEnvVar = "PLANTON_MCP_HTTP_AUTH_ENABLED"
 
-	// HTTPBearerTokenEnvVar specifies the bearer token for HTTP authentication
-	HTTPBearerTokenEnvVar = "PLANTON_MCP_HTTP_BEARER_TOKEN"
-
 	// Environment values
 	EnvironmentLive  Environment = "live"
 	EnvironmentTest  Environment = "test"
@@ -76,10 +73,6 @@ type Config struct {
 
 	// HTTPAuthEnabled determines if bearer token authentication is required for HTTP
 	HTTPAuthEnabled bool
-
-	// HTTPBearerToken is the bearer token for HTTP authentication
-	// Required when HTTPAuthEnabled is true
-	HTTPBearerToken string
 }
 
 // LoadFromEnv loads configuration from environment variables.
@@ -94,9 +87,9 @@ type Config struct {
 //   - PLANTON_MCP_TRANSPORT: Transport mode (stdio, http, both) - defaults to "stdio"
 //   - PLANTON_MCP_HTTP_PORT: HTTP server port - defaults to "8080"
 //   - PLANTON_MCP_HTTP_AUTH_ENABLED: Enable bearer token auth - defaults to "true"
-//   - PLANTON_MCP_HTTP_BEARER_TOKEN: Bearer token (required if HTTP auth enabled and transport is http/both)
 //
-// Returns an error if PLANTON_API_KEY is missing or if HTTP bearer token is required but not provided.
+// When HTTP authentication is enabled, PLANTON_API_KEY is used as the bearer token.
+// Returns an error if PLANTON_API_KEY is missing.
 func LoadFromEnv() (*Config, error) {
 	apiKey := os.Getenv(APIKeyEnvVar)
 	if apiKey == "" {
@@ -111,15 +104,6 @@ func LoadFromEnv() (*Config, error) {
 	transport := getTransport()
 	httpPort := getHTTPPort()
 	httpAuthEnabled := getHTTPAuthEnabled()
-	httpBearerToken := os.Getenv(HTTPBearerTokenEnvVar)
-
-	// Validate bearer token requirement
-	if (transport == TransportHTTP || transport == TransportBoth) && httpAuthEnabled && httpBearerToken == "" {
-		return nil, fmt.Errorf(
-			"%s environment variable required when HTTP transport is enabled with authentication",
-			HTTPBearerTokenEnvVar,
-		)
-	}
 
 	return &Config{
 		PlantonAPIKey:           apiKey,
@@ -127,7 +111,6 @@ func LoadFromEnv() (*Config, error) {
 		Transport:               transport,
 		HTTPPort:                httpPort,
 		HTTPAuthEnabled:         httpAuthEnabled,
-		HTTPBearerToken:         httpBearerToken,
 	}, nil
 }
 

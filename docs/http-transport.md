@@ -1,113 +1,185 @@
 # HTTP Transport Support
 
-The MCP server now supports HTTP transport using Server-Sent Events (SSE) in addition to the original STDIO transport.
+The MCP server supports HTTP transport using Server-Sent Events (SSE) for remote access, in addition to the default STDIO transport for local use.
 
 ## Transport Modes
 
 The server can run in three modes:
 
-1. **stdio** (default) - Standard input/output transport for local AI clients
-2. **http** - HTTP/SSE transport for remote access and webhooks
+1. **stdio** (default) - Standard input/output for local AI clients (Cursor, Claude Desktop)
+2. **http** - HTTP/SSE transport for remote access via URL endpoint
 3. **both** - Run both transports simultaneously
 
-## Configuration
+## Remote Access (Recommended)
 
-Configure the transport using environment variables:
+### Using the Hosted Endpoint
 
-### Required Variables
+The easiest way to use the MCP server is via the hosted endpoint at `https://mcp.planton.ai/`.
 
-- `PLANTON_API_KEY` - Your Planton Cloud API key (required for all modes)
+**Cursor Configuration:**
 
-### HTTP Transport Variables
+Add to `~/.cursor/mcp.json`:
 
-- `PLANTON_MCP_TRANSPORT` - Transport mode: `stdio` | `http` | `both` (default: `stdio`)
+```json
+{
+  "mcpServers": {
+    "planton-cloud": {
+      "type": "http",
+      "url": "https://mcp.planton.ai/",
+      "headers": {
+        "Authorization": "Bearer YOUR_PLANTON_API_KEY"
+      }
+    }
+  }
+}
+```
+
+Replace `YOUR_PLANTON_API_KEY` with your actual API key from the Planton Cloud console.
+
+**Benefits:**
+- No local installation required
+- Always up-to-date with latest features
+- Managed and monitored by Planton Cloud
+- High availability and performance
+
+## Running Locally
+
+For development, testing, or private deployments, you can run the MCP server locally.
+
+### Configuration
+
+Configure HTTP transport using environment variables:
+
+**Required:**
+- `PLANTON_API_KEY` - Your Planton Cloud API key
+
+**HTTP Transport:**
+- `PLANTON_MCP_TRANSPORT` - Set to `http` or `both` (default: `stdio`)
 - `PLANTON_MCP_HTTP_PORT` - HTTP server port (default: `8080`)
 - `PLANTON_MCP_HTTP_AUTH_ENABLED` - Enable bearer token auth (default: `true`)
-- `PLANTON_MCP_HTTP_BEARER_TOKEN` - Bearer token (required if auth enabled)
 
-### Example Configurations
+**Note:** When authentication is enabled, `PLANTON_API_KEY` is used as the bearer token.
 
-#### STDIO Mode (Local Development)
+### Local Setup with Docker
+
+**1. Run the Docker container:**
 
 ```bash
-export PLANTON_API_KEY="your-api-key"
-export PLANTON_MCP_TRANSPORT="stdio"
-./mcp-server-planton
+docker run -p 8080:8080 \
+  -e PLANTON_API_KEY="YOUR_PLANTON_API_KEY" \
+  -e PLANTON_MCP_TRANSPORT="http" \
+  -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
+  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
 ```
 
-#### HTTP Mode (Remote Access)
+**2. Configure Cursor:**
+
+Add to `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "planton-cloud": {
+      "type": "http",
+      "url": "http://localhost:8080/",
+      "headers": {
+        "Authorization": "Bearer YOUR_PLANTON_API_KEY"
+      }
+    }
+  }
+}
+```
+
+**3. Test the connection:**
 
 ```bash
-export PLANTON_API_KEY="your-api-key"
+# Health check
+curl http://localhost:8080/health
+
+# SSE endpoint (with authentication)
+curl -H "Authorization: Bearer YOUR_PLANTON_API_KEY" http://localhost:8080/sse
+```
+
+### Local Setup with Binary
+
+**1. Install the binary:**
+
+```bash
+# macOS (ARM64)
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_arm64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+
+# macOS (Intel)
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_x86_64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+
+# Linux (AMD64)
+curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Linux_x86_64.tar.gz | tar xz
+sudo mv mcp-server-planton /usr/local/bin/
+```
+
+**2. Start the server:**
+
+```bash
+export PLANTON_API_KEY="YOUR_PLANTON_API_KEY"
 export PLANTON_MCP_TRANSPORT="http"
 export PLANTON_MCP_HTTP_PORT="8080"
-export PLANTON_MCP_HTTP_AUTH_ENABLED="false"  # Set to "true" in production
-./mcp-server-planton
+export PLANTON_MCP_HTTP_AUTH_ENABLED="true"
+
+mcp-server-planton
 ```
 
-#### Both Modes (Development + Remote)
+**3. Configure Cursor:** (same as Docker setup above)
 
-```bash
-export PLANTON_API_KEY="your-api-key"
-export PLANTON_MCP_TRANSPORT="both"
-export PLANTON_MCP_HTTP_PORT="8080"
-export PLANTON_MCP_HTTP_AUTH_ENABLED="false"
-./mcp-server-planton
-```
+**4. Test the connection:** (same as Docker setup above)
 
 ## HTTP Endpoints
 
 When running in HTTP mode, the following endpoints are available:
 
+- `GET /health` - Health check endpoint (returns `{"status":"ok"}`)
 - `GET /sse` - SSE connection endpoint for MCP protocol
 - `POST /message` - Message endpoint for MCP protocol
 
-## Docker Usage
-
-The Docker image supports all transport modes:
-
-### STDIO Mode
-
-```bash
-docker run -e PLANTON_API_KEY="your-key" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
-```
-
-### HTTP Mode
-
-```bash
-docker run -p 8080:8080 \
-  -e PLANTON_API_KEY="your-key" \
-  -e PLANTON_MCP_TRANSPORT="http" \
-  -e PLANTON_MCP_HTTP_AUTH_ENABLED="false" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
-```
+All endpoints except `/health` require authentication when `PLANTON_MCP_HTTP_AUTH_ENABLED` is `true`.
 
 ## Testing
 
-### STDIO Mode Test
+### Health Check
+
+Test if the server is running:
 
 ```bash
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}' | \
-  PLANTON_API_KEY="test-key" \
-  PLANTON_MCP_TRANSPORT="stdio" \
-  ./mcp-server-planton
+curl http://localhost:8080/health
 ```
 
-### HTTP Mode Test
+Expected response:
+```json
+{"status":"ok"}
+```
 
-Start the server:
+### SSE Connection Test
+
+Test the SSE endpoint with authentication:
 
 ```bash
-PLANTON_API_KEY="test-key" \
-  PLANTON_MCP_TRANSPORT="http" \
-  PLANTON_MCP_HTTP_PORT="8080" \
-  PLANTON_MCP_HTTP_AUTH_ENABLED="false" \
-  ./mcp-server-planton
+curl -H "Authorization: Bearer YOUR_PLANTON_API_KEY" http://localhost:8080/sse
 ```
 
-Connect to the SSE endpoint:
+The connection will stay open and stream MCP protocol messages.
 
+### Without Authentication (Local Testing Only)
+
+For local testing without authentication:
+
+```bash
+export PLANTON_API_KEY="YOUR_PLANTON_API_KEY"
+export PLANTON_MCP_TRANSPORT="http"
+export PLANTON_MCP_HTTP_AUTH_ENABLED="false"
+mcp-server-planton
+```
+
+Then test without the Authorization header:
 ```bash
 curl http://localhost:8080/sse
 ```
@@ -178,21 +250,23 @@ This architecture allows us to enhance the SSEServer without modifying the libra
 
 When deploying HTTP transport in production:
 
-1. **Enable Authentication** - Set `PLANTON_MCP_HTTP_AUTH_ENABLED="true"`
-2. **Use Strong Tokens** - Generate secure random bearer tokens (32+ characters)
-3. **TLS Termination** - Always run behind HTTPS (reverse proxy, load balancer)
-4. **Network Isolation** - Use VPCs, security groups, firewalls
-5. **API Key Protection** - Securely manage `PLANTON_API_KEY` (use secrets management)
+1. **Enable Authentication** - Set `PLANTON_MCP_HTTP_AUTH_ENABLED="true"` (default)
+2. **Secure API Key** - Your `PLANTON_API_KEY` serves as the bearer token
+3. **TLS/HTTPS** - Always use HTTPS (reverse proxy, load balancer, or hosted endpoint)
+4. **Network Isolation** - Use VPCs, security groups, firewalls when self-hosting
+5. **API Key Management** - Store `PLANTON_API_KEY` securely (secrets management)
 
-### Two-Layer Security Model
+### Security Model
 
 ```
-Client → Bearer Token → MCP Server → PLANTON_API_KEY → Planton APIs
-         (Who can access?)            (What can they access?)
+Client → PLANTON_API_KEY (Bearer) → MCP Server → PLANTON_API_KEY → Planton APIs
+         (Authentication)                          (Authorization & FGA)
 ```
 
-- **Bearer Token** - Controls WHO can use your MCP server instance
-- **PLANTON_API_KEY** - Controls WHAT resources the user can access (FGA from Planton Cloud)
+- **PLANTON_API_KEY as Bearer Token** - Authenticates access to your MCP server instance
+- **PLANTON_API_KEY to Planton APIs** - Enforces your actual permissions (Fine-Grained Authorization)
+
+This unified approach simplifies authentication while maintaining security through your user permissions.
 
 ## Deployment Examples
 
@@ -210,7 +284,6 @@ services:
       - PLANTON_MCP_TRANSPORT=http
       - PLANTON_MCP_HTTP_PORT=8080
       - PLANTON_MCP_HTTP_AUTH_ENABLED=true
-      - PLANTON_MCP_HTTP_BEARER_TOKEN=${MCP_BEARER_TOKEN}
 ```
 
 ### Kubernetes Deployment
@@ -247,11 +320,6 @@ spec:
           value: "8080"
         - name: PLANTON_MCP_HTTP_AUTH_ENABLED
           value: "true"
-        - name: PLANTON_MCP_HTTP_BEARER_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: planton-secrets
-              key: bearer-token
 ---
 apiVersion: v1
 kind: Service
@@ -266,9 +334,7 @@ spec:
   type: LoadBalancer
 ```
 
-### Cloudflare Workers (Future)
-
-Cloudflare Workers deployment will be documented in a future update, aligned with existing webhook service patterns.
+**Note:** In production deployments, each user should have their own instance of the MCP server with their own API key, or use the hosted endpoint at `https://mcp.planton.ai/` which handles multi-user authentication automatically.
 
 ## Migration Guide
 
@@ -312,14 +378,15 @@ If you encounter authentication issues:
 **401 Unauthorized - Missing Authorization header:**
 ```bash
 curl http://localhost:8080/sse
-# Add the Authorization header
-curl -H "Authorization: Bearer your-token" http://localhost:8080/sse
+# Add the Authorization header with your API key
+curl -H "Authorization: Bearer YOUR_PLANTON_API_KEY" http://localhost:8080/sse
 ```
 
 **401 Unauthorized - Invalid bearer token:**
-- Verify the token matches `PLANTON_MCP_HTTP_BEARER_TOKEN`
-- Ensure the token doesn't have leading/trailing spaces
-- Check that the token wasn't truncated
+- Verify you're using your correct `PLANTON_API_KEY`
+- Ensure the API key doesn't have leading/trailing spaces
+- Check that the API key wasn't truncated
+- Verify the API key is valid in the Planton Cloud console
 
 ## Performance Considerations
 
