@@ -26,9 +26,7 @@ type CloudResourceSimple struct {
 	CloudResourceKind string   `json:"cloud_resource_kind"`
 	Org               string   `json:"org"`
 	Env               string   `json:"env"`
-	CreatedAt         string   `json:"created_at"`
 	Description       string   `json:"description,omitempty"`
-	IsReady           bool     `json:"is_ready"`
 	Tags              []string `json:"tags,omitempty"`
 }
 
@@ -196,9 +194,7 @@ func flattenCanvasResponse(resp *cloudresourcesearch.ExploreCloudResourcesCanvas
 					CloudResourceKind: getKindName(int32(record.GetCloudResourceKind())),
 					Org:               record.GetOrg(),
 					Env:               envSlug,
-					CreatedAt:         formatTimestamp(record.GetCreatedAt()),
 					Description:       record.GetDescription(),
-					IsReady:           record.GetIsReady(),
 					Tags:              record.GetTags(),
 				}
 
@@ -213,14 +209,6 @@ func flattenCanvasResponse(resp *cloudresourcesearch.ExploreCloudResourcesCanvas
 	}
 
 	return resources
-}
-
-// formatTimestamp converts protobuf timestamp to ISO 8601 string.
-func formatTimestamp(ts *timestamppb.Timestamp) string {
-	if ts == nil {
-		return ""
-	}
-	return ts.AsTime().Format("2006-01-02T15:04:05Z")
 }
 
 // getKindName converts CloudResourceKind enum to string name.

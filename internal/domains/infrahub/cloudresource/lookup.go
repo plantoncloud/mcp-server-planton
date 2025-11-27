@@ -163,9 +163,7 @@ func HandleLookupCloudResourceByName(
 		CloudResourceKind: getKindName(int32(record.GetCloudResourceKind())),
 		Org:               record.GetOrg(),
 		Env:               record.GetEnv(),
-		CreatedAt:         formatTimestamp(record.GetCreatedAt()),
 		Description:       record.GetDescription(),
-		IsReady:           record.GetIsReady(),
 		Tags:              record.GetTags(),
 	}
 
