@@ -5,6 +5,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/commons"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/resourcemanager"
 )
@@ -43,6 +44,9 @@ func NewServer(cfg *config.Config) *Server {
 // registerTools registers all available MCP tools with their handlers.
 func (s *Server) registerTools() {
 	log.Println("Registering MCP tools...")
+
+	// Register Commons tools (API resource kinds, etc.)
+	commons.RegisterTools(s.mcpServer, s.config)
 
 	// Register InfraHub tools
 	infrahub.RegisterTools(s.mcpServer, s.config)
