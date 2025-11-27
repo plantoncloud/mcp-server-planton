@@ -10,8 +10,11 @@ import (
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
 )
 
-// RegisterTools registers all cloud resource tools with the MCP server.
+// RegisterTools registers all cloud resource tools and resources with the MCP server.
 func RegisterTools(s *server.MCPServer, cfg *config.Config) {
+	// Register resources first (makes them available to agents immediately)
+	registerKindsResource(s)
+
 	// Query tools
 	registerGetTool(s, cfg)
 	registerSearchTool(s, cfg)
@@ -26,7 +29,16 @@ func RegisterTools(s *server.MCPServer, cfg *config.Config) {
 	registerUpdateTool(s, cfg)
 	registerDeleteTool(s, cfg)
 
-	log.Println("Registered 8 cloud resource tools")
+	log.Println("Registered 1 resource and 8 cloud resource tools")
+}
+
+// registerKindsResource registers the cloud resource kinds MCP resource.
+func registerKindsResource(s *server.MCPServer) {
+	s.AddResource(
+		CreateCloudResourceKindsResource(),
+		HandleReadCloudResourceKinds,
+	)
+	log.Println("  - planton://cloud-resource-kinds (resource)")
 }
 
 // registerGetTool registers the get_cloud_resource_by_id tool.

@@ -17,10 +17,11 @@ type Server struct {
 
 // NewServer creates a new MCP server instance.
 func NewServer(cfg *config.Config) *Server {
-	// Create MCP server with server info
+	// Create MCP server with server info and resource capabilities enabled
 	mcpServer := server.NewMCPServer(
 		"planton-cloud",
 		"0.1.0",
+		server.WithResourceCapabilities(false, false), // (subscribe, listChanged)
 	)
 
 	s := &Server{
@@ -31,7 +32,7 @@ func NewServer(cfg *config.Config) *Server {
 	// Register tool handlers
 	s.registerTools()
 
-	log.Println("MCP server initialized")
+	log.Println("MCP server initialized with resource capabilities")
 	log.Printf("Transport mode: %s", cfg.Transport)
 	log.Printf("Planton APIs endpoint: %s", cfg.PlantonAPIsGRPCEndpoint)
 	log.Println("User API key loaded from environment")
