@@ -13,6 +13,8 @@ import (
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/clients"
+	crinternal "github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // CloudResourceSimple is a simplified representation of a cloud resource for JSON serialization.
@@ -106,11 +108,12 @@ func HandleSearchCloudResources(
 	if kindsRaw, ok := arguments["cloud_resource_kinds"].([]interface{}); ok {
 		for _, kindName := range kindsRaw {
 			if kindStr, ok := kindName.(string); ok {
-				// Convert string name to enum value
-				if kindValue, found := cloudresourcekind.CloudResourceKind_value[kindStr]; found {
-					kinds = append(kinds, cloudresourcekind.CloudResourceKind(kindValue))
+				// Convert string name to enum value using normalization
+				// This handles PascalCase, snake_case, natural language, etc.
+				if kindValue, err := crinternal.NormalizeCloudResourceKind(kindStr); err == nil {
+					kinds = append(kinds, kindValue)
 				} else {
-					log.Printf("Warning: Unknown CloudResourceKind: %s", kindStr)
+					log.Printf("Warning: Unknown CloudResourceKind: %s, error: %v", kindStr, err)
 				}
 			}
 		}

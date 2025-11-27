@@ -3,6 +3,7 @@ package cloudresource
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
@@ -136,4 +137,62 @@ func getDescriptionByProvider(provider, name string) string {
 	}
 
 	return desc + ": " + name
+}
+
+// CreateCloudResourceKindsResource creates an MCP resource definition for cloud resource kinds.
+// This resource is automatically available to agents without requiring a tool call.
+func CreateCloudResourceKindsResource() mcp.Resource {
+	return mcp.NewResource(
+		"planton://cloud-resource-kinds",
+		"Cloud Resource Kinds",
+		mcp.WithResourceDescription("Complete list of available cloud resource kinds (AWS, GCP, Azure, Kubernetes, etc.) in snake_case format"),
+		mcp.WithMIMEType("application/json"),
+	)
+}
+
+// HandleReadCloudResourceKinds handles reading the cloud resource kinds MCP resource.
+// This provides the same information as list_cloud_resource_kinds tool but as a resource
+// that agents can access automatically.
+func HandleReadCloudResourceKinds(request mcp.ReadResourceRequest) ([]interface{}, error) {
+	log.Printf("Resource read: cloud-resource-kinds")
+
+	// Build list of cloud resource kinds from enum
+	kinds := make([]CloudResourceKindInfo, 0)
+
+	// Iterate through all enum values
+	for name, value := range cloudresourcekind.CloudResourceKind_value {
+		// Skip unspecified
+		if value == 0 {
+			continue
+		}
+
+		// Determine provider based on enum value ranges (from proto comments)
+		provider := getProviderByValue(value)
+		snakeCaseKind := crinternal.PascalToSnakeCase(name)
+		description := getDescriptionByProvider(provider, snakeCaseKind)
+
+		kinds = append(kinds, CloudResourceKindInfo{
+			Kind:        snakeCaseKind,
+			Provider:    provider,
+			Description: description,
+		})
+	}
+
+	// Return as JSON
+	jsonData, err := json.MarshalIndent(kinds, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal kinds: %w", err)
+	}
+
+	log.Printf("Resource read completed: cloud-resource-kinds, returned %d kinds", len(kinds))
+
+	return []interface{}{
+		mcp.TextResourceContents{
+			ResourceContents: mcp.ResourceContents{
+				URI:      request.Params.URI,
+				MIMEType: "application/json",
+			},
+			Text: string(jsonData),
+		},
+	}, nil
 }
