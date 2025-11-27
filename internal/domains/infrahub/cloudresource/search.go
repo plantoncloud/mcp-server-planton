@@ -14,7 +14,6 @@ import (
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/clients"
 	crinternal "github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // CloudResourceSimple is a simplified representation of a cloud resource for JSON serialization.

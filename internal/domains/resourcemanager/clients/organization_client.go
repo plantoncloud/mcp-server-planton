@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	organizationv1grpc "buf.build/gen/go/blintora/apis/grpc/go/ai/planton/resourcemanager/organization/v1/organizationv1grpc"
-	organizationv1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/resourcemanager/organization/v1"
 	"buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/protobuf"
+	organizationv1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/resourcemanager/organization/v1"
 	commonauth "github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -128,4 +128,3 @@ func (c *OrganizationClient) Close() error {
 	}
 	return nil
 }
-
