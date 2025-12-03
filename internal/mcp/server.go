@@ -6,8 +6,10 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/commons"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/connect"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/resourcemanager"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub"
 )
 
 // Server wraps the MCP server instance and configuration.
@@ -53,6 +55,12 @@ func (s *Server) registerTools() {
 
 	// Register ResourceManager tools
 	resourcemanager.RegisterTools(s.mcpServer, s.config)
+
+	// Register Service Hub tools
+	servicehub.RegisterTools(s.mcpServer, s.config)
+
+	// Register Connect tools
+	connect.RegisterTools(s.mcpServer, s.config)
 
 	log.Println("All tools registered successfully")
 }

@@ -41,3 +41,13 @@ func registerListKindsTool(s *server.MCPServer, cfg *config.Config) {
 	)
 	log.Println("  - list_api_resource_kinds")
 }
+
+
+
+
+
+
+
+
+
+

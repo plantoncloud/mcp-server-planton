@@ -154,10 +154,25 @@ The MCP server provides tools for querying and managing Planton Cloud resources:
 - `update_cloud_resource` - Update existing resources
 - `delete_cloud_resource` - Delete cloud resources
 
-### Environments
+### Service Hub
+- `list_services_for_org` - List all services in an organization
+- `get_service_by_id` - Get service details by ID
+- `get_service_by_org_by_slug` - Get service by organization and name
+- `list_service_branches` - List Git branches for a service's repository
+- `get_tekton_pipeline` - Get complete Tekton pipeline definition with YAML by ID or org/name
+
+### Connect (Credentials)
+- `get_github_credential_for_service` - Get GitHub credential for a service
+- `get_github_credential_by_org_by_slug` - Get GitHub credential by org and name
+- `list_github_repositories` - List repositories accessible via a credential
+
+### Environments & Organizations
 - `list_environments_for_org` - List environments in an organization
+- `list_organizations` - List organizations you're a member of
 
 All tools respect your user permissions - you can only access resources you have permission to view or manage.
+
+For detailed Service Hub tool documentation, see [Service Hub Tools Guide](docs/service-hub-tools.md).
 
 ## Configuration
 
