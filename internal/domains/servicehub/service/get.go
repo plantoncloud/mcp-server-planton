@@ -77,7 +77,7 @@ func HandleGetServiceById(
 	// Convert to simple struct
 	gitRepo := svc.GetSpec().GetGitRepo()
 	pipelineCfg := svc.GetSpec().GetPipelineConfiguration()
-	
+
 	serviceSimple := ServiceSimple{
 		ID:          svc.GetMetadata().GetId(),
 		Slug:        svc.GetMetadata().GetSlug(),
@@ -155,7 +155,7 @@ func HandleGetServiceByOrgBySlug(
 	// Extract arguments
 	orgID, okOrg := arguments["org_id"].(string)
 	slug, okSlug := arguments["slug"].(string)
-	
+
 	if !okOrg || orgID == "" {
 		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
@@ -164,7 +164,7 @@ func HandleGetServiceByOrgBySlug(
 		errJSON, _ := json.MarshalIndent(errResp, "", "  ")
 		return mcp.NewToolResultText(string(errJSON)), nil
 	}
-	
+
 	if !okSlug || slug == "" {
 		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
@@ -201,7 +201,7 @@ func HandleGetServiceByOrgBySlug(
 	// Convert to simple struct
 	gitRepo := svc.GetSpec().GetGitRepo()
 	pipelineCfg := svc.GetSpec().GetPipelineConfiguration()
-	
+
 	serviceSimple := ServiceSimple{
 		ID:          svc.GetMetadata().GetId(),
 		Slug:        svc.GetMetadata().GetSlug(),
@@ -244,4 +244,3 @@ func HandleGetServiceByOrgBySlug(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-

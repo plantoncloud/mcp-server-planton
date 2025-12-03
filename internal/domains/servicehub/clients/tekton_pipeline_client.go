@@ -129,7 +129,6 @@ func (c *TektonPipelineClient) GetByOrgAndName(ctx context.Context, orgID, name 
 	return resp, nil
 }
 
-
 // NewTektonPipelineClientFromContext creates a new Tekton Pipeline gRPC client
 // using the API key from the request context.
 //
@@ -159,4 +158,3 @@ func (c *TektonPipelineClient) Close() error {
 	}
 	return nil
 }
-

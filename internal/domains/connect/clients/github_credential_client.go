@@ -260,4 +260,3 @@ func (c *GithubQueryClient) Close() error {
 	}
 	return nil
 }
-

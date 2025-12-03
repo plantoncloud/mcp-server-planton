@@ -5,6 +5,7 @@ import (
 
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub/pipeline"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub/service"
 	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub/tektonpipeline"
 )
@@ -16,9 +17,11 @@ func RegisterTools(s *server.MCPServer, cfg *config.Config) {
 	// Register service tools
 	service.RegisterTools(s, cfg)
 
+	// Register pipeline tools
+	pipeline.RegisterTools(s, cfg)
+
 	// Register Tekton pipeline tools
 	tektonpipeline.RegisterTools(s, cfg)
 
 	log.Println("Service Hub tools registration complete")
 }
-

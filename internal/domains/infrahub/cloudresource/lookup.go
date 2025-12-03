@@ -183,13 +183,3 @@ func HandleLookupCloudResourceByName(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-
-
-
-
-
-
-
-
-
-

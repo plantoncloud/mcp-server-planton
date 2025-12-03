@@ -93,7 +93,7 @@ func HandleGetTektonPipeline(
 
 	// Query pipeline - either by ID or by org+name
 	var pipeline *tektonpipelinev1.TektonPipeline
-	
+
 	if hasPipelineID && pipelineID != "" {
 		pipeline, err = client.GetById(ctx, pipelineID)
 		if err != nil {
@@ -133,4 +133,3 @@ func HandleGetTektonPipeline(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-

@@ -103,4 +103,3 @@ func HandleListServiceBranches(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-

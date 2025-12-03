@@ -197,6 +197,111 @@ Gets complete Tekton pipeline definition including YAML content.
 - Copy platform-provided pipelines as starting templates
 - View complete pipeline definitions
 
+## Pipeline Execution Tools
+
+### get_pipeline_by_id
+
+Gets detailed information about a pipeline execution by its ID.
+
+**Input:**
+```json
+{
+  "pipeline_id": "pipe-xyz789"
+}
+```
+
+**Output:**
+```json
+{
+  "id": "pipe-xyz789",
+  "slug": "backend-api-main-abc123",
+  "name": "Backend API - main - abc123",
+  "org": "org-abc123",
+  "service_id": "svc-xyz789",
+  "commit_sha": "abc123def456",
+  "branch": "main",
+  "status": {
+    "progress_status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
+    "progress_result": "WORKFLOW_EXECUTION_RESULT_SUCCEEDED",
+    "status_reason": "",
+    "start_time": "2025-12-03T10:15:30Z",
+    "end_time": "2025-12-03T10:18:45Z",
+    "build_stage": {
+      "status": "WORKFLOW_EXECUTION_STATUS_COMPLETED",
+      "result": "WORKFLOW_EXECUTION_RESULT_SUCCEEDED",
+      "status_reason": "",
+      "start_time": "2025-12-03T10:15:30Z",
+      "end_time": "2025-12-03T10:17:20Z"
+    }
+  },
+  "created_at": "2025-12-03T10:15:25Z",
+  "updated_at": "2025-12-03T10:18:45Z"
+}
+```
+
+**Use Cases:**
+- Check pipeline execution status to see if build/deploy succeeded or failed
+- Get commit and branch information for a pipeline run
+- Investigate pipeline timing and duration
+- Understand build stage progress before looking at logs
+
+### get_pipeline_build_logs
+
+Streams and retrieves all build logs for a pipeline execution.
+
+**Input:**
+```json
+{
+  "pipeline_id": "pipe-xyz789"
+}
+```
+
+**Output:**
+```json
+[
+  {
+    "owner": "pipe-xyz789",
+    "task_name": "git-clone",
+    "log_message": "Cloning repository https://github.com/acmecorp/backend-api.git"
+  },
+  {
+    "owner": "pipe-xyz789",
+    "task_name": "git-clone",
+    "log_message": "Checked out branch: main"
+  },
+  {
+    "owner": "pipe-xyz789",
+    "task_name": "docker-build",
+    "log_message": "Step 1/5: FROM node:18-alpine"
+  },
+  {
+    "owner": "pipe-xyz789",
+    "task_name": "docker-build",
+    "log_message": "Step 2/5: WORKDIR /app"
+  },
+  {
+    "owner": "pipe-xyz789",
+    "task_name": "docker-build",
+    "log_message": "npm install completed successfully"
+  },
+  {
+    "owner": "pipe-xyz789",
+    "task_name": "docker-build",
+    "log_message": "Successfully built image: backend-api:abc123"
+  }
+]
+```
+
+**Use Cases:**
+- **Troubleshoot build failures** - See exact error messages from failed builds
+- **Debug pipeline issues** - Understand what happened during execution
+- **Analyze build performance** - Review build output for optimization opportunities
+- **Verify build steps** - Confirm that expected build steps executed correctly
+- **Historical analysis** - Review logs from past pipeline runs (stored in R2)
+- **Real-time monitoring** - Stream logs from currently running pipelines (from Redis)
+
+**Note:** Logs are automatically sourced from Redis for in-progress pipelines and from R2 storage for completed pipelines.
+
 ## GitHub Credential Tools
 
 ### get_github_credential_for_service
@@ -361,6 +466,37 @@ Lists all GitHub repositories accessible via a GitHub credential.
    - List of accessible repositories
    - Browser URLs for each repository
    - Clone URLs for Git operations
+
+### Example 4: Troubleshooting a Failed Build
+
+**User:** "Why did my backend-api service build fail?"
+
+**Agent workflow:**
+
+1. **Get service to find latest pipeline:**
+   ```json
+   get_service_by_org_by_slug({ "org_id": "org-abc123", "slug": "backend-api" })
+   ```
+
+2. **Get pipeline execution details:**
+   ```json
+   get_pipeline_by_id({ "pipeline_id": "pipe-xyz789" })
+   ```
+
+3. **Check pipeline status - if failed, get build logs:**
+   ```json
+   get_pipeline_build_logs({ "pipeline_id": "pipe-xyz789" })
+   ```
+
+4. **Agent analyzes logs and finds:**
+   - Exact error message: `"npm install failed: ENOENT package.json"`
+   - Task that failed: `docker-build`
+   - Root cause: Missing package.json in repository root
+
+5. **Agent suggests fix:**
+   - "The build failed because package.json is missing in your repository root"
+   - "Make sure package.json is committed to the repository"
+   - "Alternative: Update Dockerfile WORKDIR to point to correct directory"
 
 ## Security and Permissions
 

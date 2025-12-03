@@ -15,14 +15,14 @@ import (
 
 // GithubCredentialInfo contains GitHub credential information (metadata only, no secrets).
 type GithubCredentialInfo struct {
-	ID               string `json:"id"`
-	Slug             string `json:"slug"`
-	Name             string `json:"name"`
-	Org              string `json:"org"`
-	InstallationID   int64  `json:"installation_id"`
-	AccountID        string `json:"account_id"`
-	AccountType      string `json:"account_type"`
-	ConnectionHost   string `json:"connection_host"`
+	ID             string `json:"id"`
+	Slug           string `json:"slug"`
+	Name           string `json:"name"`
+	Org            string `json:"org"`
+	InstallationID int64  `json:"installation_id"`
+	AccountID      string `json:"account_id"`
+	AccountType    string `json:"account_type"`
+	ConnectionHost string `json:"connection_host"`
 }
 
 // CreateGetGithubCredentialForServiceTool creates the MCP tool definition for getting GitHub credential for a service.
@@ -136,14 +136,14 @@ func HandleGetGithubCredentialForService(
 	// Convert to info struct (metadata only, no secrets)
 	appInstallInfo := credential.GetSpec().GetAppInstallInfo()
 	credInfo := GithubCredentialInfo{
-		ID:               credential.GetMetadata().GetId(),
-		Slug:             credential.GetMetadata().GetSlug(),
-		Name:             credential.GetMetadata().GetName(),
-		Org:              credential.GetMetadata().GetOrg(),
-		InstallationID:   appInstallInfo.GetInstallationId(),
-		AccountID:        appInstallInfo.GetAccountId(),
-		AccountType:      appInstallInfo.GetAccountType().String(),
-		ConnectionHost:   credential.GetSpec().GetGithubConnectionHost(),
+		ID:             credential.GetMetadata().GetId(),
+		Slug:           credential.GetMetadata().GetSlug(),
+		Name:           credential.GetMetadata().GetName(),
+		Org:            credential.GetMetadata().GetOrg(),
+		InstallationID: appInstallInfo.GetInstallationId(),
+		AccountID:      appInstallInfo.GetAccountId(),
+		AccountType:    appInstallInfo.GetAccountType().String(),
+		ConnectionHost: credential.GetSpec().GetGithubConnectionHost(),
 	}
 
 	log.Printf("Tool completed: get_github_credential_for_service, credential: %s", credentialID)
@@ -197,7 +197,7 @@ func HandleGetGithubCredentialByOrgBySlug(
 	// Extract arguments
 	orgID, okOrg := arguments["org_id"].(string)
 	slug, okSlug := arguments["slug"].(string)
-	
+
 	if !okOrg || orgID == "" {
 		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
@@ -206,7 +206,7 @@ func HandleGetGithubCredentialByOrgBySlug(
 		errJSON, _ := json.MarshalIndent(errResp, "", "  ")
 		return mcp.NewToolResultText(string(errJSON)), nil
 	}
-	
+
 	if !okSlug || slug == "" {
 		errResp := errors.ErrorResponse{
 			Error:   "INVALID_ARGUMENT",
@@ -243,14 +243,14 @@ func HandleGetGithubCredentialByOrgBySlug(
 	// Convert to info struct (metadata only, no secrets)
 	appInstallInfo := credential.GetSpec().GetAppInstallInfo()
 	credInfo := GithubCredentialInfo{
-		ID:               credential.GetMetadata().GetId(),
-		Slug:             credential.GetMetadata().GetSlug(),
-		Name:             credential.GetMetadata().GetName(),
-		Org:              credential.GetMetadata().GetOrg(),
-		InstallationID:   appInstallInfo.GetInstallationId(),
-		AccountID:        appInstallInfo.GetAccountId(),
-		AccountType:      appInstallInfo.GetAccountType().String(),
-		ConnectionHost:   credential.GetSpec().GetGithubConnectionHost(),
+		ID:             credential.GetMetadata().GetId(),
+		Slug:           credential.GetMetadata().GetSlug(),
+		Name:           credential.GetMetadata().GetName(),
+		Org:            credential.GetMetadata().GetOrg(),
+		InstallationID: appInstallInfo.GetInstallationId(),
+		AccountID:      appInstallInfo.GetAccountId(),
+		AccountType:    appInstallInfo.GetAccountType().String(),
+		ConnectionHost: credential.GetSpec().GetGithubConnectionHost(),
 	}
 
 	log.Printf("Tool completed: get_github_credential_by_org_by_slug, credential: %s/%s", orgID, slug)
@@ -268,4 +268,3 @@ func HandleGetGithubCredentialByOrgBySlug(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-
