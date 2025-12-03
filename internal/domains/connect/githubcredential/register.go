@@ -54,4 +54,3 @@ func registerListGithubRepositoriesTool(s *server.MCPServer, cfg *config.Config)
 	)
 	log.Println("  - list_github_repositories")
 }
-

@@ -17,32 +17,32 @@ import (
 
 // ServiceSimple is a simplified representation of a Service for JSON serialization.
 type ServiceSimple struct {
-	ID              string            `json:"id"`
-	Slug            string            `json:"slug"`
-	Name            string            `json:"name"`
-	Description     string            `json:"description"`
-	Org             string            `json:"org"`
-	GitRepo         GitRepoInfo       `json:"git_repo"`
-	PipelineConfig  PipelineConfigInfo `json:"pipeline_config,omitempty"`
+	ID             string             `json:"id"`
+	Slug           string             `json:"slug"`
+	Name           string             `json:"name"`
+	Description    string             `json:"description"`
+	Org            string             `json:"org"`
+	GitRepo        GitRepoInfo        `json:"git_repo"`
+	PipelineConfig PipelineConfigInfo `json:"pipeline_config,omitempty"`
 }
 
 // GitRepoInfo contains Git repository information.
 type GitRepoInfo struct {
-	OwnerName      string `json:"owner_name"`
-	Name           string `json:"name"`
-	DefaultBranch  string `json:"default_branch"`
-	BrowserURL     string `json:"browser_url"`
-	CloneURL       string `json:"clone_url"`
-	Provider       string `json:"provider"`
-	ProjectRoot    string `json:"project_root,omitempty"`
+	OwnerName     string `json:"owner_name"`
+	Name          string `json:"name"`
+	DefaultBranch string `json:"default_branch"`
+	BrowserURL    string `json:"browser_url"`
+	CloneURL      string `json:"clone_url"`
+	Provider      string `json:"provider"`
+	ProjectRoot   string `json:"project_root,omitempty"`
 }
 
 // PipelineConfigInfo contains pipeline configuration information.
 type PipelineConfigInfo struct {
-	PipelineProvider   string `json:"pipeline_provider"`
-	ImageBuildMethod   string `json:"image_build_method,omitempty"`
+	PipelineProvider    string `json:"pipeline_provider"`
+	ImageBuildMethod    string `json:"image_build_method,omitempty"`
 	ImageRepositoryPath string `json:"image_repository_path,omitempty"`
-	DisablePipelines   bool   `json:"disable_pipelines,omitempty"`
+	DisablePipelines    bool   `json:"disable_pipelines,omitempty"`
 }
 
 // CreateListServicesForOrgTool creates the MCP tool definition for listing services.
@@ -132,7 +132,7 @@ func HandleListServicesForOrg(
 	for _, svc := range serviceList.GetEntries() {
 		gitRepo := svc.GetSpec().GetGitRepo()
 		pipelineCfg := svc.GetSpec().GetPipelineConfiguration()
-		
+
 		serviceSimple := ServiceSimple{
 			ID:          svc.GetMetadata().GetId(),
 			Slug:        svc.GetMetadata().GetSlug(),
@@ -182,4 +182,3 @@ func HandleListServicesForOrg(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-

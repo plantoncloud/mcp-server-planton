@@ -67,4 +67,3 @@ func registerListServiceBranchesTool(s *server.MCPServer, cfg *config.Config) {
 	)
 	log.Println("  - list_service_branches")
 }
-

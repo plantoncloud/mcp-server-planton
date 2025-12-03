@@ -28,4 +28,3 @@ func registerGetTektonPipelineTool(s *server.MCPServer, cfg *config.Config) {
 	)
 	log.Println("  - get_tekton_pipeline")
 }
-

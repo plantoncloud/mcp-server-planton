@@ -113,4 +113,3 @@ func HandleListGithubRepositories(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-
