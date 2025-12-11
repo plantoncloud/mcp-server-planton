@@ -17,3 +17,7 @@ func RegisterTools(s *server.MCPServer, cfg *config.Config) {
 
 	log.Println("Connect tools registration complete")
 }
+
+
+
+
