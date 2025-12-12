@@ -16,12 +16,22 @@ import (
 
 const (
 	// MaxLogStreamDuration is the maximum time allowed for streaming logs
-	// Set to 2 minutes to be safely under typical agent/tool timeouts
-	MaxLogStreamDuration = 2 * time.Minute
+	// Reduced to 45 seconds to prevent HTTP/SSE connection timeouts and improve responsiveness
+	MaxLogStreamDuration = 45 * time.Second
 
 	// MaxLogEntries is the maximum number of log entries to return
 	// Prevents overwhelming the client and hitting timeout limits
 	MaxLogEntries = 5000
+
+	// CheckpointInterval is how often to check context and log progress
+	CheckpointInterval = 100
+
+	// EarlyReturnThreshold is the minimum number of entries before considering early return
+	EarlyReturnThreshold = 1000
+
+	// EarlyReturnTimeRatio is the fraction of max duration after which we return with reasonable data
+	// At 0.5, we return after 22.5 seconds if we have >= 1000 entries
+	EarlyReturnTimeRatio = 0.5
 )
 
 // TektonTaskLogEntry is a simplified representation of a log entry for JSON serialization.
@@ -50,7 +60,7 @@ func CreateGetPipelineBuildLogsTool() mcp.Tool {
 			"Returns Tekton task logs including build output, errors, and diagnostic messages. " +
 			"Logs are fetched from Redis (for running pipelines) or R2 storage (for completed pipelines). " +
 			"Use this to troubleshoot build failures and understand what happened during pipeline execution. " +
-			fmt.Sprintf("Note: Returns up to %d log entries per request with a %d minute timeout. ", MaxLogEntries, int(MaxLogStreamDuration.Minutes())) +
+			fmt.Sprintf("Note: Returns up to %d log entries per request with a %d second timeout. ", MaxLogEntries, int(MaxLogStreamDuration.Seconds())) +
 			"For large log files, use 'max_entries' and 'skip_entries' parameters for pagination. " +
 			"If limits are reached, partial results are returned with a message indicating more logs are available.",
 		InputSchema: mcp.ToolInputSchema{
@@ -80,6 +90,14 @@ func HandleGetPipelineBuildLogs(
 	arguments map[string]interface{},
 	cfg *config.Config,
 ) (*mcp.CallToolResult, error) {
+	// Add panic recovery to prevent SSE server crashes
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Recovered from panic in get_pipeline_build_logs: %v", r)
+			// Don't return error - panic has already occurred, just log it
+		}
+	}()
+
 	log.Printf("Tool invoked: get_pipeline_build_logs")
 
 	// Extract pipeline_id from arguments
@@ -146,9 +164,11 @@ func HandleGetPipelineBuildLogs(
 	}
 
 	// Track streaming state
-	var logEntries []TektonTaskLogEntry
+	// Pre-allocate slice capacity for better performance
+	logEntries := make([]TektonTaskLogEntry, 0, maxEntries)
 	limitReached := false
 	timeoutReached := false
+	contextCancelled := false
 	hasMore := false
 	startTime := time.Now()
 
@@ -158,9 +178,44 @@ func HandleGetPipelineBuildLogs(
 
 	// Collect log entries with limits and pagination
 	for len(logEntries) < maxEntries {
+		// Checkpoint: check context cancellation and consider early return every N entries
+		if totalProcessed%CheckpointInterval == 0 && totalProcessed > 0 {
+			elapsed := time.Since(startTime)
+
+			select {
+			case <-ctx.Done():
+				contextCancelled = true
+				log.Printf("Context cancelled at checkpoint: pipeline=%s, entries=%d, processed=%d",
+					pipelineID, len(logEntries), totalProcessed)
+				break
+			case <-streamCtx.Done():
+				timeoutReached = true
+				log.Printf("Stream timeout at checkpoint: pipeline=%s, entries=%d, processed=%d",
+					pipelineID, len(logEntries), totalProcessed)
+				break
+			default:
+				// Continue streaming but check for early return conditions
+				log.Printf("Checkpoint: pipeline=%s, entries=%d, processed=%d, elapsed=%v",
+					pipelineID, len(logEntries), totalProcessed, elapsed)
+
+				// Smart early return: if we have reasonable data and approaching timeout, return early
+				if len(logEntries) >= EarlyReturnThreshold && elapsed >= time.Duration(float64(MaxLogStreamDuration)*EarlyReturnTimeRatio) {
+					log.Printf("Early return triggered: pipeline=%s, entries=%d, elapsed=%v (threshold reached)",
+						pipelineID, len(logEntries), elapsed)
+					limitReached = true
+					hasMore = true
+					break
+				}
+			}
+			if contextCancelled || timeoutReached || (limitReached && hasMore) {
+				break
+			}
+		}
 		logEntry, err := stream.Recv()
 		if err == io.EOF {
 			// Stream completed successfully
+			log.Printf("Stream completed: pipeline=%s, entries=%d, duration=%v",
+				pipelineID, len(logEntries), time.Since(startTime))
 			break
 		}
 		if err != nil {
@@ -171,10 +226,33 @@ func HandleGetPipelineBuildLogs(
 					pipelineID, time.Since(startTime), len(logEntries), entriesSkipped)
 				break
 			}
-			// Other stream error
+			// Check for context cancellation
+			if ctx.Err() != nil {
+				contextCancelled = true
+				log.Printf("Context cancelled during stream receive: %v, entries: %d", ctx.Err(), len(logEntries))
+				break
+			}
+			// Other stream error - provide actionable guidance
+			log.Printf("Stream error for pipeline %s: %v, entries collected: %d", pipelineID, err, len(logEntries))
+
+			// If we have partial results, return them with guidance
+			if len(logEntries) > 0 {
+				errResp := errors.ErrorResponse{
+					Error: "STREAM_ERROR",
+					Message: fmt.Sprintf("Stream interrupted after receiving %d entries: %v. "+
+						"This may be a temporary network issue. Try again or use skip_entries=%d to continue.",
+						len(logEntries), err, skipEntries+len(logEntries)),
+				}
+				errJSON, _ := json.MarshalIndent(errResp, "", "  ")
+				return mcp.NewToolResultText(string(errJSON)), nil
+			}
+
+			// No partial results - provide retry guidance
 			errResp := errors.ErrorResponse{
-				Error:   "STREAM_ERROR",
-				Message: fmt.Sprintf("Error receiving log entry: %v", err),
+				Error: "STREAM_ERROR",
+				Message: fmt.Sprintf("Failed to retrieve logs: %v. "+
+					"This may be a temporary network issue or the pipeline may not exist. "+
+					"Verify the pipeline ID and try again.", err),
 			}
 			errJSON, _ := json.MarshalIndent(errResp, "", "  ")
 			return mcp.NewToolResultText(string(errJSON)), nil
@@ -208,12 +286,19 @@ func HandleGetPipelineBuildLogs(
 			pipelineID, maxEntries, hasMore)
 	}
 
+	// Check context before building response to prevent SSE crashes
+	if ctx.Err() != nil {
+		contextCancelled = true
+		log.Printf("Context cancelled before building response: %v, entries collected: %d", ctx.Err(), len(logEntries))
+		// Still return partial results if we have any
+	}
+
 	// Build response with metadata
 	response := LogStreamResponse{
 		LogEntries:    logEntries,
 		TotalReturned: len(logEntries),
 		TotalSkipped:  entriesSkipped,
-		LimitReached:  limitReached || timeoutReached,
+		LimitReached:  limitReached || timeoutReached || contextCancelled,
 		HasMore:       hasMore,
 	}
 
@@ -223,11 +308,22 @@ func HandleGetPipelineBuildLogs(
 	}
 
 	// Add informative message if limits were hit
-	if timeoutReached {
+	duration := time.Since(startTime)
+	if contextCancelled {
 		response.Message = fmt.Sprintf(
-			"Log streaming timed out after %d minutes. Showing %d log entries (skipped %d). "+
-				"The pipeline may have produced more logs. Check the pipeline status to see if it's still running.",
-			int(MaxLogStreamDuration.Minutes()), len(logEntries), entriesSkipped)
+			"Request cancelled or connection lost. Showing %d log entries (skipped %d). "+
+				"Connection may have timed out. Use skip_entries=%d to continue from where you left off.",
+			len(logEntries), entriesSkipped, skipEntries+len(logEntries))
+	} else if timeoutReached {
+		response.Message = fmt.Sprintf(
+			"Log streaming timed out after %d seconds. Showing %d log entries (skipped %d). "+
+				"The pipeline may have produced more logs. Use skip_entries=%d to fetch the next page.",
+			int(MaxLogStreamDuration.Seconds()), len(logEntries), entriesSkipped, skipEntries+len(logEntries))
+	} else if limitReached && hasMore && duration >= time.Duration(float64(MaxLogStreamDuration)*EarlyReturnTimeRatio) {
+		response.Message = fmt.Sprintf(
+			"Retrieved %d log entries in %v (early return to prevent timeout). "+
+				"More logs are available. Use skip_entries=%d to fetch the next page.",
+			len(logEntries), duration.Round(time.Second), response.NextOffset)
 	} else if limitReached && hasMore {
 		response.Message = fmt.Sprintf(
 			"Log entry limit reached. Showing %d log entries (skipped %d). "+
@@ -239,13 +335,31 @@ func HandleGetPipelineBuildLogs(
 			len(logEntries), entriesSkipped)
 	}
 
-	duration := time.Since(startTime)
-	log.Printf("Tool completed: get_pipeline_build_logs, pipeline: %s, entries: %d, duration: %v, limited: %v",
-		pipelineID, len(logEntries), duration, limitReached || timeoutReached)
+	entriesPerSec := float64(len(logEntries)) / duration.Seconds()
+	log.Printf("Tool completed: get_pipeline_build_logs, pipeline: %s, entries: %d, duration: %v, rate: %.2f entries/sec, limited: %v, cancelled: %v",
+		pipelineID, len(logEntries), duration, entriesPerSec, limitReached || timeoutReached, contextCancelled)
+
+	// Final context check before marshaling to prevent panic
+	if ctx.Err() != nil {
+		log.Printf("Context invalid before JSON marshal, returning partial results: %v", ctx.Err())
+		// Return simple response if context is dead to avoid potential panic
+		if len(logEntries) > 0 {
+			// Try to return something, even if abbreviated
+			simpleMsg := fmt.Sprintf("Partial results: %d log entries retrieved before connection lost", len(logEntries))
+			return mcp.NewToolResultText(simpleMsg), nil
+		}
+		errResp := errors.ErrorResponse{
+			Error:   "CONTEXT_CANCELLED",
+			Message: "Request cancelled before completion",
+		}
+		errJSON, _ := json.MarshalIndent(errResp, "", "  ")
+		return mcp.NewToolResultText(string(errJSON)), nil
+	}
 
 	// Return formatted JSON response
 	resultJSON, err := json.MarshalIndent(response, "", "  ")
 	if err != nil {
+		log.Printf("Failed to marshal response: %v, entries count: %d", err, len(logEntries))
 		errResp := errors.ErrorResponse{
 			Error:   "INTERNAL_ERROR",
 			Message: fmt.Sprintf("Failed to marshal response: %v", err),
@@ -256,4 +370,3 @@ func HandleGetPipelineBuildLogs(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-

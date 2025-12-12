@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	pipelinev1grpc "buf.build/gen/go/blintora/apis/grpc/go/ai/planton/servicehub/pipeline/v1/pipelinev1grpc"
 	pipelinev1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/servicehub/pipeline/v1"
@@ -13,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
 )
 
 // PipelineClient is a gRPC client for querying Planton Cloud Pipeline resources.
@@ -46,10 +48,16 @@ func NewPipelineClient(grpcEndpoint, apiKey string) (*PipelineClient, error) {
 		log.Printf("Using insecure transport for endpoint: %s", grpcEndpoint)
 	}
 
-	// Create gRPC dial options with per-RPC credentials (matches CLI pattern)
+	// Create gRPC dial options with per-RPC credentials and keepalive settings
+	// Keepalive prevents connection drops during long-running streaming operations
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(transportCreds),
 		grpc.WithPerRPCCredentials(commonauth.NewTokenAuth(apiKey)),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                30 * time.Second, // Send pings every 30 seconds if no activity
+			Timeout:             10 * time.Second, // Wait 10 seconds for ping ack before considering connection dead
+			PermitWithoutStream: true,             // Allow pings even when no streams are active
+		}),
 	}
 
 	// Establish connection

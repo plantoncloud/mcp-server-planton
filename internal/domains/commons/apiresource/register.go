@@ -45,3 +45,6 @@ func registerListKindsTool(s *server.MCPServer, cfg *config.Config) {
 
 
 
+
+
+
