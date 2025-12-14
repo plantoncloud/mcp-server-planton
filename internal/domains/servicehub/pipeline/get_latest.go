@@ -147,16 +147,3 @@ func HandleGetLatestPipelineByServiceId(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

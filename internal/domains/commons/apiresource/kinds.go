@@ -260,15 +260,3 @@ func HandleReadApiResourceKinds(request mcp.ReadResourceRequest) ([]interface{},
 		},
 	}, nil
 }
-
-
-
-
-
-
-
-
-
-
-
-

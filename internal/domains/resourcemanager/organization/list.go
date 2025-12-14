@@ -105,15 +105,3 @@ func HandleListOrganizations(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-
-
-
-
-
-
-
-
-
-
-
-

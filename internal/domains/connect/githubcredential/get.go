@@ -268,15 +268,3 @@ func HandleGetGithubCredentialByOrgBySlug(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-
-
-
-
-
-
-
-
-
-
-
-

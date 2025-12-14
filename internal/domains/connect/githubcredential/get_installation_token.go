@@ -105,15 +105,3 @@ func HandleGetGithubInstallationToken(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
-
-
-
-
-
-
-
-
-
-
-
-

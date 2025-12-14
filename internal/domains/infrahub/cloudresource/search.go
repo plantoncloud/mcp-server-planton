@@ -217,15 +217,3 @@ func getKindName(kind int32) string {
 	}
 	return fmt.Sprintf("Unknown(%d)", kind)
 }
-
-
-
-
-
-
-
-
-
-
-
-
