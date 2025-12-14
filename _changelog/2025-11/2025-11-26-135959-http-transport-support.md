@@ -236,7 +236,7 @@ export PLANTON_MCP_HTTP_PORT="8080"
 docker run -p 8080:8080 \
   -e PLANTON_API_KEY="your-key" \
   -e PLANTON_MCP_TRANSPORT="http" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 **Best for**: Production deployments, containerized environments, cloud platforms
@@ -254,7 +254,7 @@ spec:
     spec:
       containers:
       - name: mcp-server
-        image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+        image: ghcr.io/plantoncloud/mcp-server-planton:latest
         ports:
         - containerPort: 8080
         env:
@@ -551,7 +551,7 @@ docker run -p 8080:8080 \
   -e PLANTON_API_KEY="${PLANTON_API_KEY}" \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_PORT="8080" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 ## Related Work
@@ -604,7 +604,7 @@ export PLANTON_MCP_HTTP_PORT="8080"
 version: '3.8'
 services:
   mcp-server:
-    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    image: ghcr.io/plantoncloud/mcp-server-planton:latest
     ports:
       - "8080:8080"
     environment:
@@ -639,7 +639,7 @@ spec:
     spec:
       containers:
       - name: mcp-server
-        image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+        image: ghcr.io/plantoncloud/mcp-server-planton:latest
         ports:
         - containerPort: 8080
           name: http
@@ -706,6 +706,11 @@ spec:
 3. Implement bearer token middleware (week 1)
 4. Add health check and metrics endpoints (week 2)
 5. Create Cloudflare Workers deployment template (week 3)
+
+
+
+
+
 
 
 

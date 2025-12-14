@@ -181,7 +181,7 @@ docker run -p 8080:8080 \
   -e PLANTON_API_KEY="your-api-key" \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_AUTH_ENABLED="false" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 ### HTTP Endpoints

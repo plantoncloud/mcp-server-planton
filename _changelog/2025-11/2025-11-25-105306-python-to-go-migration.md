@@ -359,7 +359,7 @@ jobs:
 Updated `go.mod` to use Planton Cloud's API module:
 
 ```go
-module github.com/plantoncloud-inc/mcp-server-planton
+module github.com/plantoncloud/mcp-server-planton
 
 go 1.24.7
 
@@ -411,10 +411,10 @@ pip install mcp-server-planton  # Requires Python, pip, venv management
 curl -L https://github.com/.../releases/.../mcp-server-planton.tar.gz | tar xz
 
 # Option 2: Docker
-docker run ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+docker run ghcr.io/plantoncloud/mcp-server-planton:latest
 
 # Option 3: From source
-go install github.com/plantoncloud-inc/mcp-server-planton/cmd/mcp-server-planton@latest
+go install github.com/plantoncloud/mcp-server-planton/cmd/mcp-server-planton@latest
 ```
 
 **No Configuration Changes**:
@@ -485,14 +485,14 @@ go install github.com/plantoncloud-inc/mcp-server-planton/cmd/mcp-server-planton
 2. Install Go version (choose one):
    ```bash
    # Docker (recommended)
-   docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+   docker pull ghcr.io/plantoncloud/mcp-server-planton:latest
    
    # Binary download
-   curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.2.0/mcp-server-planton_0.2.0_Darwin_arm64.tar.gz | tar xz
+   curl -L https://github.com/plantoncloud/mcp-server-planton/releases/download/v0.2.0/mcp-server-planton_0.2.0_Darwin_arm64.tar.gz | tar xz
    sudo mv mcp-server-planton /usr/local/bin/
    
    # From source
-   go install github.com/plantoncloud-inc/mcp-server-planton/cmd/mcp-server-planton@latest
+   go install github.com/plantoncloud/mcp-server-planton/cmd/mcp-server-planton@latest
    ```
 
 3. **No configuration changes needed** - same env vars, same commands
@@ -526,7 +526,7 @@ Or switch to Docker:
         "run", "-i", "--rm",
         "-e", "USER_JWT_TOKEN=${USER_JWT_TOKEN}",
         "-e", "PLANTON_APIS_GRPC_ENDPOINT=${PLANTON_APIS_GRPC_ENDPOINT}",
-        "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
+        "ghcr.io/plantoncloud/mcp-server-planton:latest"
       ]
     }
   }
@@ -679,7 +679,7 @@ With the Go foundation in place, future improvements become easier:
 
 **Download binary**:
 ```bash
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.2.0/mcp-server-planton_0.2.0_Darwin_arm64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/download/v0.2.0/mcp-server-planton_0.2.0_Darwin_arm64.tar.gz | tar xz
 chmod +x mcp-server-planton
 ./mcp-server-planton
 ```
@@ -689,12 +689,12 @@ chmod +x mcp-server-planton
 docker run -i --rm \
   -e USER_JWT_TOKEN="eyJhbG..." \
   -e PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 **Using go install**:
 ```bash
-go install github.com/plantoncloud-inc/mcp-server-planton/cmd/mcp-server-planton@latest
+go install github.com/plantoncloud/mcp-server-planton/cmd/mcp-server-planton@latest
 mcp-server-planton
 ```
 
@@ -742,6 +742,11 @@ mcp-server-planton
 2. Monitor first production usage
 3. Update documentation with Go-specific examples
 4. Plan additional MCP tool implementations
+
+
+
+
+
 
 
 

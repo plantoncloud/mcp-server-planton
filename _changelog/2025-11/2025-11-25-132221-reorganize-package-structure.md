@@ -133,7 +133,7 @@ Consolidated:
 ```go
 package infrahub
 
-import "github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
+import "github.com/plantoncloud/mcp-server-planton/internal/common/auth"
 
 // CloudResourceQueryClient for direct resource queries
 type CloudResourceQueryClient struct { /* ... */ }
@@ -180,8 +180,8 @@ All tools updated to import from new package structure:
 package tools
 
 import (
-    "github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-    "github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub"
+    "github.com/plantoncloud/mcp-server-planton/internal/config"
+    "github.com/plantoncloud/mcp-server-planton/internal/infrahub"
 )
 
 func HandleGetCloudResourceById(ctx context.Context, arguments map[string]interface{}, cfg *config.Config) (*mcp.CallToolResult, error) {
@@ -199,7 +199,7 @@ Migrated from `internal/grpc/environment_client.go`:
 ```go
 package resourcemanager
 
-import "github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
+import "github.com/plantoncloud/mcp-server-planton/internal/common/auth"
 
 // EnvironmentClient is a gRPC client for querying Planton Cloud Environment resources.
 type EnvironmentClient struct { /* ... */ }
@@ -224,8 +224,8 @@ Updated to use shared error handling and new client import:
 package tools
 
 import (
-    "github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub/tools"
-    "github.com/plantoncloud-inc/mcp-server-planton/internal/resourcemanager"
+    "github.com/plantoncloud/mcp-server-planton/internal/infrahub/tools"
+    "github.com/plantoncloud/mcp-server-planton/internal/resourcemanager"
 )
 
 func HandleListEnvironmentsForOrg(ctx context.Context, arguments map[string]interface{}, cfg *config.Config) (*mcp.CallToolResult, error) {
@@ -245,8 +245,8 @@ Updated `internal/mcp/server.go` with new import paths:
 package mcp
 
 import (
-    infrahubtools "github.com/plantoncloud-inc/mcp-server-planton/internal/infrahub/tools"
-    resourcemanagertools "github.com/plantoncloud-inc/mcp-server-planton/internal/resourcemanager/tools"
+    infrahubtools "github.com/plantoncloud/mcp-server-planton/internal/infrahub/tools"
+    resourcemanagertools "github.com/plantoncloud/mcp-server-planton/internal/resourcemanager/tools"
 )
 
 func (s *Server) registerTools() {
@@ -490,6 +490,11 @@ Each addition follows the established pattern:
 ---
 
 *"Good architecture makes the system easy to understand, easy to develop, easy to maintain, and easy to deploy."* - Robert C. Martin
+
+
+
+
+
 
 
 

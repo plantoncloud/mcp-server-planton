@@ -13,32 +13,32 @@ This guide covers different ways to install and run the Planton Cloud MCP Server
 
 ### Method 1: Pre-built Binaries (Recommended)
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/plantoncloud-inc/mcp-server-planton/releases):
+Download the latest release for your platform from [GitHub Releases](https://github.com/plantoncloud/mcp-server-planton/releases):
 
 **macOS (ARM64/Apple Silicon):**
 ```bash
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_arm64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_arm64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 chmod +x /usr/local/bin/mcp-server-planton
 ```
 
 **macOS (Intel):**
 ```bash
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_x86_64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Darwin_x86_64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 chmod +x /usr/local/bin/mcp-server-planton
 ```
 
 **Linux (AMD64):**
 ```bash
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Linux_x86_64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 chmod +x /usr/local/bin/mcp-server-planton
 ```
 
 **Linux (ARM64):**
 ```bash
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Linux_arm64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/download/v0.1.0/mcp-server-planton_0.1.0_Linux_arm64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 chmod +x /usr/local/bin/mcp-server-planton
 ```
@@ -60,10 +60,10 @@ mcp-server-planton --help
 Pull and run from GitHub Container Registry:
 
 ```bash
-docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+docker pull ghcr.io/plantoncloud/mcp-server-planton:latest
 
 # Or pull specific version
-docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:v0.1.0
+docker pull ghcr.io/plantoncloud/mcp-server-planton:v0.1.0
 ```
 
 Run the container:
@@ -72,7 +72,7 @@ Run the container:
 docker run -i --rm \
   -e PLANTON_API_KEY="your-api-key" \
   -e PLANTON_APIS_GRPC_ENDPOINT="apis.planton.cloud:443" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 ### Method 3: Install with go install
@@ -80,7 +80,7 @@ docker run -i --rm \
 If you have Go installed:
 
 ```bash
-go install github.com/plantoncloud-inc/mcp-server-planton/cmd/mcp-server-planton@latest
+go install github.com/plantoncloud/mcp-server-planton/cmd/mcp-server-planton@latest
 ```
 
 The binary will be installed to `$GOPATH/bin` (typically `~/go/bin`).
@@ -91,7 +91,7 @@ For development or latest features:
 
 ```bash
 # Clone repository
-git clone https://github.com/plantoncloud-inc/mcp-server-planton.git
+git clone https://github.com/plantoncloud/mcp-server-planton.git
 cd mcp-server-planton
 
 # Build
@@ -174,7 +174,7 @@ Add to your `langgraph.json`:
         "run", "-i", "--rm",
         "-e", "PLANTON_API_KEY=${PLANTON_API_KEY}",
         "-e", "PLANTON_APIS_GRPC_ENDPOINT=${PLANTON_APIS_GRPC_ENDPOINT}",
-        "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
+        "ghcr.io/plantoncloud/mcp-server-planton:latest"
       ]
     }
   }
@@ -213,7 +213,7 @@ Add to Claude Desktop MCP configuration:
         "run", "-i", "--rm",
         "-e", "PLANTON_API_KEY=your-api-key",
         "-e", "PLANTON_APIS_GRPC_ENDPOINT=apis.planton.cloud:443",
-        "ghcr.io/plantoncloud-inc/mcp-server-planton:latest"
+        "ghcr.io/plantoncloud/mcp-server-planton:latest"
       ]
     }
   }
@@ -296,7 +296,7 @@ docker ps
 docker logs <container-id>
 
 # Pull latest image
-docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+docker pull ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 ## Updating
@@ -307,7 +307,7 @@ Download the latest release from GitHub:
 
 ```bash
 # Download new version
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/download/v0.2.0/mcp-server-planton_0.2.0_Darwin_arm64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/download/v0.2.0/mcp-server-planton_0.2.0_Darwin_arm64.tar.gz | tar xz
 
 # Replace existing binary
 sudo mv mcp-server-planton /usr/local/bin/
@@ -316,7 +316,7 @@ sudo mv mcp-server-planton /usr/local/bin/
 ### Update Docker Image
 
 ```bash
-docker pull ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+docker pull ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 ### Update from Source
@@ -339,7 +339,7 @@ sudo rm /usr/local/bin/mcp-server-planton
 ### Remove Docker Image
 
 ```bash
-docker rmi ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+docker rmi ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 ### Remove Source Build

@@ -4,10 +4,10 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub/pipeline"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub/service"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub/tektonpipeline"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/servicehub/pipeline"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/servicehub/service"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/servicehub/tektonpipeline"
 )
 
 // RegisterTools registers all Service Hub domain tools with the MCP server.

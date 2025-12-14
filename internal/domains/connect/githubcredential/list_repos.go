@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/connect/clients"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/connect/clients"
 )
 
 // GithubRepositoryInfo contains GitHub repository information.

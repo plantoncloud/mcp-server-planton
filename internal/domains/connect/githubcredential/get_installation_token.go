@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/connect/clients"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/connect/clients"
 )
 
 // GithubInstallationTokenInfo contains installation token for Git operations.
@@ -105,6 +105,11 @@ func HandleGetGithubInstallationToken(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
+
+
+
+
+
 
 
 

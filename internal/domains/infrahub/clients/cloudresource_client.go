@@ -12,7 +12,7 @@ import (
 	"buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/search/v1/apiresource"
 	cloudresourcesearch "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/search/v1/infrahub/cloudresource"
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
-	commonauth "github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
+	commonauth "github.com/plantoncloud/mcp-server-planton/internal/common/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"

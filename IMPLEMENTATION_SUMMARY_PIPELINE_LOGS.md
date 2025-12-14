@@ -269,7 +269,7 @@ internal/domains/servicehub/pipeline/
 ## Build Verification
 
 ```bash
-$ cd /Users/suresh/scm/github.com/plantoncloud-inc/mcp-server-planton
+$ cd /Users/suresh/scm/github.com/plantoncloud/mcp-server-planton
 $ go build ./internal/domains/servicehub/pipeline/...
 # Build successful!
 $ go build ./internal/domains/servicehub/clients/...
@@ -292,4 +292,9 @@ All todos completed ✓
 All code builds successfully ✓
 Comprehensive test scenarios documented ✓
 Ready for deployment ✓
+
+
+
+
+
 

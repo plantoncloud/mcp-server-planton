@@ -1,10 +1,10 @@
 # Planton Cloud MCP Server
 
-[![CI](https://github.com/plantoncloud-inc/mcp-server-planton/actions/workflows/ci.yml/badge.svg)](https://github.com/plantoncloud-inc/mcp-server-planton/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/plantoncloud-inc/mcp-server-planton/actions/workflows/codeql.yml/badge.svg)](https://github.com/plantoncloud-inc/mcp-server-planton/actions/workflows/codeql.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/plantoncloud-inc/mcp-server-planton)](https://goreportcard.com/report/github.com/plantoncloud-inc/mcp-server-planton)
+[![CI](https://github.com/plantoncloud/mcp-server-planton/actions/workflows/ci.yml/badge.svg)](https://github.com/plantoncloud/mcp-server-planton/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/plantoncloud/mcp-server-planton/actions/workflows/codeql.yml/badge.svg)](https://github.com/plantoncloud/mcp-server-planton/actions/workflows/codeql.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/plantoncloud/mcp-server-planton)](https://goreportcard.com/report/github.com/plantoncloud/mcp-server-planton)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Docker](https://img.shields.io/badge/Docker-ghcr.io-blue?logo=docker)](https://github.com/plantoncloud-inc/mcp-server-planton/pkgs/container/mcp-server-planton)
+[![Docker](https://img.shields.io/badge/Docker-ghcr.io-blue?logo=docker)](https://github.com/plantoncloud/mcp-server-planton/pkgs/container/mcp-server-planton)
 
 MCP (Model Context Protocol) server for Planton Cloud that enables AI agents to query and manage cloud resources using user permissions.
 
@@ -68,7 +68,7 @@ Run the Docker container:
 docker run -p 8080:8080 \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 **Note:** The API key is provided by each user in the `Authorization` header, not in the Docker environment. This enables proper multi-user support with per-user permissions.
@@ -92,15 +92,15 @@ docker run -p 8080:8080 \
 Install the binary:
 ```bash
 # macOS (ARM64)
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_arm64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_arm64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 
 # macOS (Intel)
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_x86_64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_x86_64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 
 # Linux (AMD64)
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/latest/download/mcp-server-planton_Linux_x86_64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 ```
 
@@ -222,8 +222,8 @@ This architecture ensures true multi-tenant security where users can only access
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/plantoncloud-inc/mcp-server-planton/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/plantoncloud-inc/mcp-server-planton/discussions)
+- **Issues**: [GitHub Issues](https://github.com/plantoncloud/mcp-server-planton/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/plantoncloud/mcp-server-planton/discussions)
 - **Documentation**: [Planton Cloud Docs](https://docs.planton.cloud)
 
 ## License

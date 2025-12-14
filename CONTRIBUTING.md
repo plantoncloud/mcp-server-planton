@@ -14,7 +14,7 @@ Thank you for your interest in contributing to the Planton Cloud MCP Server! Thi
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/plantoncloud-inc/mcp-server-planton.git
+git clone https://github.com/plantoncloud/mcp-server-planton.git
 cd mcp-server-planton
 ```
 

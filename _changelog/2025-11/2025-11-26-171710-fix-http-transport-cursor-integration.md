@@ -354,7 +354,7 @@ docker run -p 8080:8080 \
   -e PLANTON_API_KEY="your-key" \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 ## Future Enhancements
@@ -373,6 +373,11 @@ docker run -p 8080:8080 \
 **Timeline**: 2 hours debugging + implementation
 
 **Deployment**: Ready for immediate release
+
+
+
+
+
 
 
 

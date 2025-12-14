@@ -60,7 +60,7 @@ Embrace the dependency requirement and align with Planton Cloud's infrastructure
 **File**: `mcp-server-planton/go.mod`
 
 ```diff
- module github.com/plantoncloud-inc/mcp-server-planton
+ module github.com/plantoncloud/mcp-server-planton
  
 -go 1.23
 +go 1.24.7
@@ -252,18 +252,18 @@ go 1.24.7  # Version stayed the same ✅
 
 ```bash
 # Check go.mod
-$ grep "^go " /Users/suresh/scm/github.com/plantoncloud-inc/mcp-server-planton/go.mod
+$ grep "^go " /Users/suresh/scm/github.com/plantoncloud/mcp-server-planton/go.mod
 go 1.24.7  # ✅ Correct
 
 # Check Dockerfile
-$ grep "FROM golang" /Users/suresh/scm/github.com/plantoncloud-inc/mcp-server-planton/Dockerfile
+$ grep "FROM golang" /Users/suresh/scm/github.com/plantoncloud/mcp-server-planton/Dockerfile
 FROM golang:1.25-alpine AS builder  # ✅ Correct
 ```
 
 ### 2. Test go mod tidy
 
 ```bash
-$ cd /Users/suresh/scm/github.com/plantoncloud-inc/mcp-server-planton
+$ cd /Users/suresh/scm/github.com/plantoncloud/mcp-server-planton
 $ go mod tidy
 # No output = success ✅
 
@@ -479,6 +479,11 @@ The go.mod file now correctly reflects the minimum Go version requirement impose
 - Verify Docker build succeeds
 - Monitor for any version drift in future dependency updates
 - Periodic alignment review with Planton Cloud infrastructure
+
+
+
+
+
 
 
 

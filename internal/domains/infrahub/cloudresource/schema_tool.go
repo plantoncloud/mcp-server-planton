@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	crinternal "github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	crinternal "github.com/plantoncloud/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
 )
 
 // CreateGetCloudResourceSchemaTool creates the MCP tool definition for getting cloud resource schema.

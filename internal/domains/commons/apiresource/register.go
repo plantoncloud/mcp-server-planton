@@ -6,8 +6,8 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/auth"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
 )
 
 // RegisterTools registers all API resource tools and resources with the MCP server.
@@ -41,6 +41,11 @@ func registerListKindsTool(s *server.MCPServer, cfg *config.Config) {
 	)
 	log.Println("  - list_api_resource_kinds")
 }
+
+
+
+
+
 
 
 

@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub/clients"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/servicehub/clients"
 )
 
 // BranchList represents a list of Git branches.

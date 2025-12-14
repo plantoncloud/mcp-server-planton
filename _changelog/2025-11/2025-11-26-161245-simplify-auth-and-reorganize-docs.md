@@ -349,7 +349,7 @@ docker run -p 8080:8080 \
   -e PLANTON_API_KEY="test-key" \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 
 curl -H "Authorization: Bearer test-key" http://localhost:8080/health
 # Expected: {"status":"ok"}

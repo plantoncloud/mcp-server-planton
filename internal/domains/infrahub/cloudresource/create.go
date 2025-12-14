@@ -9,10 +9,10 @@ import (
 
 	apiresource "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/apiresource"
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/clients"
-	crinternal "github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/infrahub/clients"
+	crinternal "github.com/plantoncloud/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 

@@ -126,7 +126,7 @@ All Go code is properly formatted
 Building mcp-server-planton...
 Binary built: bin/mcp-server-planton
 Creating release version v1.0.7...
-To github.com:plantoncloud-inc/mcp-server-planton.git
+To github.com:plantoncloud/mcp-server-planton.git
  * [new tag]         v1.0.7 -> v1.0.7
 Release version v1.0.7 created and pushed
 GitHub Actions will now build and publish the release
@@ -171,9 +171,9 @@ Creating release version v1.0.6...
 Tag v1.0.6 exists locally. Deleting due to force=true...
 Deleted tag 'v1.0.6' (was ddfc47d)
 Tag v1.0.6 exists remotely. Deleting due to force=true...
-To github.com:plantoncloud-inc/mcp-server-planton.git
+To github.com:plantoncloud/mcp-server-planton.git
  - [deleted]         v1.0.6
-To github.com:plantoncloud-inc/mcp-server-planton.git
+To github.com:plantoncloud/mcp-server-planton.git
  * [new tag]         v1.0.6 -> v1.0.6
 Release version v1.0.6 created and pushed
 GitHub Actions will now build and publish the release
@@ -212,7 +212,7 @@ $ make release version=v1.0.7
 Checking Go code formatting...
 All Go code is properly formatted
 Building mcp-server-planton...
-# github.com/plantoncloud-inc/mcp-server-planton/cmd/mcp-server-planton
+# github.com/plantoncloud/mcp-server-planton/cmd/mcp-server-planton
 ./main.go:25:2: undefined: InvalidFunction
 make: *** [build] Error 1
 ```

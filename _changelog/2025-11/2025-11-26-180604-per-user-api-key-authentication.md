@@ -287,13 +287,13 @@ func HandleGetCloudResourceById(
 docker run -p 8080:8080 \
   -e PLANTON_API_KEY="YOUR_PLANTON_API_KEY" \
   -e PLANTON_MCP_TRANSPORT="http" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 
 # NEW
 docker run -p 8080:8080 \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 **Added multi-user security section**:
@@ -391,7 +391,7 @@ version: '3.8'
 services:
   # STDIO mode (single user)
   mcp-server-stdio:
-    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    image: ghcr.io/plantoncloud/mcp-server-planton:latest
     environment:
       PLANTON_API_KEY: ${PLANTON_API_KEY}
       PLANTON_CLOUD_ENVIRONMENT: live
@@ -399,7 +399,7 @@ services:
   
   # HTTP mode (multi-user)
   mcp-server-http:
-    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    image: ghcr.io/plantoncloud/mcp-server-planton:latest
     ports:
       - "8080:8080"
     environment:
@@ -458,7 +458,7 @@ Result: User A cannot access User B's data ✓
 docker run -p 8080:8080 \
   -e PLANTON_API_KEY="shared-machine-key" \
   -e PLANTON_MCP_TRANSPORT="http" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 **New Setup**:
@@ -467,7 +467,7 @@ docker run -p 8080:8080 \
 docker run -p 8080:8080 \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 **Cursor Configuration** (no change):

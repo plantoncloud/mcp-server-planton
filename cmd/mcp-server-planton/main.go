@@ -7,8 +7,8 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/mcp"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/mcp"
 )
 
 func main() {

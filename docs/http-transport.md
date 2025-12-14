@@ -68,7 +68,7 @@ Configure HTTP transport using environment variables:
 docker run -p 8080:8080 \
   -e PLANTON_MCP_TRANSPORT="http" \
   -e PLANTON_MCP_HTTP_AUTH_ENABLED="true" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 **Note:** Each user provides their own API key in the `Authorization` header, not in the Docker environment.
@@ -107,15 +107,15 @@ curl -H "Authorization: Bearer YOUR_PLANTON_API_KEY" http://localhost:8080/sse
 
 ```bash
 # macOS (ARM64)
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_arm64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_arm64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 
 # macOS (Intel)
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_x86_64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/latest/download/mcp-server-planton_Darwin_x86_64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 
 # Linux (AMD64)
-curl -L https://github.com/plantoncloud-inc/mcp-server-planton/releases/latest/download/mcp-server-planton_Linux_x86_64.tar.gz | tar xz
+curl -L https://github.com/plantoncloud/mcp-server-planton/releases/latest/download/mcp-server-planton_Linux_x86_64.tar.gz | tar xz
 sudo mv mcp-server-planton /usr/local/bin/
 ```
 
@@ -281,7 +281,7 @@ This architecture enables true multi-user support with proper isolation between 
 version: '3.8'
 services:
   mcp-server:
-    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    image: ghcr.io/plantoncloud/mcp-server-planton:latest
     ports:
       - "8080:8080"
     environment:
@@ -311,7 +311,7 @@ spec:
     spec:
       containers:
       - name: mcp-server
-        image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+        image: ghcr.io/plantoncloud/mcp-server-planton:latest
         ports:
         - containerPort: 8080
         env:
@@ -417,6 +417,11 @@ Key areas needing contribution:
 - Custom HTTP server wrapper
 - Health check endpoint
 - Metrics and observability
+
+
+
+
+
 
 
 

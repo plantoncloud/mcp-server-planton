@@ -10,8 +10,8 @@ import (
 
 	apiresourcekind "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/apiresource/apiresourcekind"
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -260,6 +260,11 @@ func HandleReadApiResourceKinds(request mcp.ReadResourceRequest) ([]interface{},
 		},
 	}, nil
 }
+
+
+
+
+
 
 
 

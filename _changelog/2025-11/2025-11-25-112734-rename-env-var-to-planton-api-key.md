@@ -140,12 +140,12 @@ PLANTON_API_KEY=your-token
 # Old
 docker run -i --rm \
   -e USER_JWT_TOKEN="your-token" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 
 # New
 docker run -i --rm \
   -e PLANTON_API_KEY="your-token" \
-  ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+  ghcr.io/plantoncloud/mcp-server-planton:latest
 ```
 
 ## Backward Compatibility
@@ -171,6 +171,11 @@ docker run -i --rm \
 - [Configuration Guide](../docs/configuration.md) - Complete configuration documentation
 - [Installation Guide](../docs/installation.md) - Updated installation instructions
 - [README](../README.md) - Updated main documentation with new API key instructions
+
+
+
+
+
 
 
 

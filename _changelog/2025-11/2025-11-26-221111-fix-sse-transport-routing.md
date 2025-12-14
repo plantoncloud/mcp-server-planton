@@ -311,7 +311,7 @@ HTTP 200/202 Success ✅
 
 - **Release**: v1.0.7
 - **Commit**: b6c2b27
-- **Docker Image**: `ghcr.io/plantoncloud-inc/mcp-server-planton:v1.0.7`
+- **Docker Image**: `ghcr.io/plantoncloud/mcp-server-planton:v1.0.7`
 
 ### Deployment Steps
 
@@ -391,6 +391,11 @@ This fix does not affect:
 **Timeline**: 2 hours (analysis, fix, testing, release)  
 **Repository**: mcp-server-planton  
 **Version**: v1.0.7
+
+
+
+
+
 
 
 

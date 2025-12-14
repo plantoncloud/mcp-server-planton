@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub/clients"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/servicehub/clients"
 )
 
 // CreateGetLatestPipelineByServiceIdTool creates the MCP tool definition for getting latest pipeline by service ID.
@@ -147,6 +147,11 @@ func HandleGetLatestPipelineByServiceId(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
+
+
+
+
+
 
 
 

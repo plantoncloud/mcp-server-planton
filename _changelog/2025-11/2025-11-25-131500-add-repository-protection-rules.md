@@ -346,7 +346,7 @@ The new workflows integrate with existing CI:
 
 The branch protection rules must be configured manually in GitHub UI:
 
-1. Navigate to: `https://github.com/plantoncloud-inc/mcp-server-planton/settings/branches`
+1. Navigate to: `https://github.com/plantoncloud/mcp-server-planton/settings/branches`
 2. Click **"Add rule"** or **"Add branch protection rule"**
 3. Follow all steps in `.github/BRANCH_PROTECTION_SETUP.md`
 

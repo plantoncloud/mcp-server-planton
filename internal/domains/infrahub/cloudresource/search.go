@@ -10,10 +10,10 @@ import (
 	cloudresourcesearch "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/search/v1/infrahub/cloudresource"
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/clients"
-	crinternal "github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/infrahub/clients"
+	crinternal "github.com/plantoncloud/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"
 )
 
 // CloudResourceSimple is a simplified representation of a cloud resource for JSON serialization.
@@ -217,6 +217,11 @@ func getKindName(kind int32) string {
 	}
 	return fmt.Sprintf("Unknown(%d)", kind)
 }
+
+
+
+
+
 
 
 

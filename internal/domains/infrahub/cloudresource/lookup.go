@@ -10,9 +10,9 @@ import (
 	apiresourcekind "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/apiresource/apiresourcekind"
 	cloudresourcekind "buf.build/gen/go/project-planton/apis/protocolbuffers/go/org/project_planton/shared/cloudresourcekind"
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/clients"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/infrahub/clients"
 )
 
 // CreateLookupCloudResourceByNameTool creates the MCP tool definition for looking up a cloud resource by name.
@@ -183,6 +183,11 @@ func HandleLookupCloudResourceByName(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
+
+
+
+
+
 
 
 

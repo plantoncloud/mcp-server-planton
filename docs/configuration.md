@@ -441,7 +441,7 @@ metadata:
 spec:
   containers:
   - name: mcp-server
-    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    image: ghcr.io/plantoncloud/mcp-server-planton:latest
     envFrom:
     - secretRef:
         name: planton-mcp-config
@@ -458,7 +458,7 @@ import (
     "fmt"
     "log"
     
-    "github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+    "github.com/plantoncloud/mcp-server-planton/internal/config"
 )
 
 func main() {
@@ -554,7 +554,7 @@ version: '3.8'
 services:
   # STDIO mode (single user)
   mcp-server-stdio:
-    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    image: ghcr.io/plantoncloud/mcp-server-planton:latest
     environment:
       PLANTON_API_KEY: ${PLANTON_API_KEY}
       PLANTON_CLOUD_ENVIRONMENT: live
@@ -564,7 +564,7 @@ services:
   
   # HTTP mode (multi-user)
   mcp-server-http:
-    image: ghcr.io/plantoncloud-inc/mcp-server-planton:latest
+    image: ghcr.io/plantoncloud/mcp-server-planton:latest
     ports:
       - "8080:8080"
     environment:

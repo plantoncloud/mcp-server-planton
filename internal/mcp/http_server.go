@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/auth"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
 )
 
 // HTTPServerOptions configures the HTTP server

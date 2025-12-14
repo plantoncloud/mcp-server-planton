@@ -93,7 +93,7 @@ pip install mcp-server-planton
 
 Or for pre-release testing:
 ```toml
-mcp-server-planton = { git = "https://github.com/plantoncloud-inc/mcp-server-planton.git", branch = "master" }
+mcp-server-planton = { git = "https://github.com/plantoncloud/mcp-server-planton.git", branch = "master" }
 ```
 
 ## Checklist
@@ -106,6 +106,11 @@ mcp-server-planton = { git = "https://github.com/plantoncloud-inc/mcp-server-pla
 - [x] CI/CD pipelines configured
 - [x] PyPI packaging metadata complete
 - [x] README covers installation, configuration, usage
+
+
+
+
+
 
 
 

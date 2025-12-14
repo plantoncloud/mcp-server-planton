@@ -10,7 +10,7 @@ spec:
   container:
     app:
       image:
-        repo: ghcr.io/plantoncloud-inc/mcp-server-planton
+        repo: ghcr.io/plantoncloud/mcp-server-planton
         tag: latest
       env:
         variables:

@@ -249,7 +249,7 @@ import (
     "os"
     "testing"
     
-    "github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+    "github.com/plantoncloud/mcp-server-planton/internal/config"
 )
 
 func TestLoadFromEnv(t *testing.T) {
@@ -371,7 +371,7 @@ import (
     "encoding/json"
     
     "github.com/mark3labs/mcp-go/mcp"
-    "github.com/plantoncloud-inc/mcp-server-planton/internal/grpc"
+    "github.com/plantoncloud/mcp-server-planton/internal/grpc"
 )
 
 func CreateOrganizationTool() mcp.Tool {
@@ -637,6 +637,6 @@ go build -a ./cmd/mcp-server-planton
 
 ## Getting Help
 
-- **Issues**: [GitHub Issues](https://github.com/plantoncloud-inc/mcp-server-planton/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/plantoncloud-inc/mcp-server-planton/discussions)
+- **Issues**: [GitHub Issues](https://github.com/plantoncloud/mcp-server-planton/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/plantoncloud/mcp-server-planton/discussions)
 - **Contributing**: See [CONTRIBUTING.md](../CONTRIBUTING.md)

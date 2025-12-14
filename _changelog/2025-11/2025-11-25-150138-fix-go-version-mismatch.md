@@ -55,7 +55,7 @@ Standardized all configuration files to use Go 1.23, which is:
 Changed the Go version from development version to stable release:
 
 ```diff
- module github.com/plantoncloud-inc/mcp-server-planton
+ module github.com/plantoncloud/mcp-server-planton
  
 -go 1.24.7
 +go 1.23

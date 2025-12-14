@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/resourcemanager/environment"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/resourcemanager/organization"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/resourcemanager/environment"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/resourcemanager/organization"
 )
 
 // RegisterTools registers all ResourceManager domain tools with the MCP server.

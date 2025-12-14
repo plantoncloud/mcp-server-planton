@@ -7,9 +7,9 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/mcp"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/errors"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub/clients"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/errors"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/servicehub/clients"
 )
 
 // CreateGetServiceByIdTool creates the MCP tool definition for getting service by ID.
@@ -244,6 +244,11 @@ func HandleGetServiceByOrgBySlug(
 
 	return mcp.NewToolResultText(string(resultJSON)), nil
 }
+
+
+
+
+
 
 
 

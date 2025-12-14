@@ -7,7 +7,7 @@ Remove the documentation file and implement actual branch protection rules using
 
 ## Current State
 
-- Repository: `plantoncloud-inc/mcp-server-planton`
+- Repository: `plantoncloud/mcp-server-planton`
 - Branch: `main` (currently unprotected)
 - Documentation file exists at `.github/BRANCH_PROTECTION_SETUP.md`
 
@@ -49,7 +49,7 @@ Use the GitHub API via `gh api` to configure branch protection with these settin
 
 ### 3. Implementation Command
 
-Will use `gh api` with a PUT request to `/repos/plantoncloud-inc/mcp-server-planton/branches/main/protection` with a JSON payload containing all the protection rules.
+Will use `gh api` with a PUT request to `/repos/plantoncloud/mcp-server-planton/branches/main/protection` with a JSON payload containing all the protection rules.
 
 ## Notes
 

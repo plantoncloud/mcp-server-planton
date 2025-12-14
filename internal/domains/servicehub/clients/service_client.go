@@ -10,7 +10,7 @@ import (
 	"buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/apiresource"
 	"buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/commons/protobuf"
 	servicev1 "buf.build/gen/go/blintora/apis/protocolbuffers/go/ai/planton/servicehub/service/v1"
-	commonauth "github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
+	commonauth "github.com/plantoncloud/mcp-server-planton/internal/common/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"

@@ -227,7 +227,7 @@ func NewServer(cfg *config.Config) *Server {
 ### Files Modified
 
 1. **`internal/domains/infrahub/cloudresource/search.go`**
-   - Added import: `crinternal "github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"`
+   - Added import: `crinternal "github.com/plantoncloud/mcp-server-planton/internal/domains/infrahub/cloudresource/internal"`
    - Replaced direct enum lookup with `crinternal.NormalizeCloudResourceKind()` call
    - Updated error logging to include error details
    - Location: Lines 108-122

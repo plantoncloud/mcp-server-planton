@@ -4,12 +4,12 @@ import (
 	"log"
 
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/commons"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/connect"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/infrahub"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/resourcemanager"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/domains/servicehub"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/commons"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/connect"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/infrahub"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/resourcemanager"
+	"github.com/plantoncloud/mcp-server-planton/internal/domains/servicehub"
 )
 
 // Server wraps the MCP server instance and configuration.

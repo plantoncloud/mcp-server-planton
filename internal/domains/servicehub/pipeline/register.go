@@ -6,8 +6,8 @@ import (
 
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/common/auth"
-	"github.com/plantoncloud-inc/mcp-server-planton/internal/config"
+	"github.com/plantoncloud/mcp-server-planton/internal/common/auth"
+	"github.com/plantoncloud/mcp-server-planton/internal/config"
 )
 
 // RegisterTools registers all pipeline tools with the MCP server.
