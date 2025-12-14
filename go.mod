@@ -1,4 +1,4 @@
-module github.com/plantoncloud-inc/mcp-server-planton
+module github.com/plantoncloud/mcp-server-planton
 
 go 1.24.7
 
